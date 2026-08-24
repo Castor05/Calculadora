@@ -10,15 +10,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# Estilização CSS Personalizada para Interface Premium
+# Estilização CSS Personalizada
 st.markdown("""
     <style>
-    /* Estilo Geral e Fundo */
     .stApp {
         background-color: #0e1117;
     }
-    
-    /* Hero Banner / Card do Cabeçalho */
     .hero-card {
         background: linear-gradient(135deg, #1e2638 0%, #111827 100%);
         border: 1px solid #2d3748;
@@ -27,7 +24,6 @@ st.markdown("""
         margin-bottom: 25px;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
     }
-    
     .hero-title {
         font-size: 2.2rem;
         font-weight: 800;
@@ -36,14 +32,11 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         margin-bottom: 6px;
     }
-
     .hero-subtitle {
         color: #94a3b8;
         font-size: 1.05rem;
         margin: 0;
     }
-
-    /* Cards Informativos de Recursos */
     .feature-card {
         background: #1a202c;
         border: 1px solid #2d3748;
@@ -66,15 +59,11 @@ st.markdown("""
         font-size: 0.8rem;
         color: #94a3b8;
     }
-
-    /* Ajuste de Botões Gerais */
     div.stButton > button {
         border-radius: 10px;
         font-weight: 600;
         transition: all 0.2s ease-in-out;
     }
-
-    /* Botão Principal Calcular */
     .stButton > button[kind="primary"] {
         background: linear-gradient(90deg, #10b981 0%, #059669 100%);
         color: white;
@@ -89,8 +78,6 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
         transform: translateY(-1px);
     }
-
-    /* Sidebar */
     section[data-testid="stSidebar"] {
         background-color: #111827;
         border-right: 1px solid #1f2937;
@@ -109,6 +96,30 @@ def multifatorial(numero, ordem):
         res *= i
     return res
 
+# Função para gerar passos explicativos de expressões
+def explicacao_passo_a_passo(entrada_original):
+    passos = []
+    
+    # 1. Ajuste e padronização da string
+    txt = entrada_original.replace(" ", "")
+    
+    # Exibe expressão inicial formatada
+    passos.append(f"**Expressão Inicial:** `{txt}`")
+    
+    # Detecta se há frações em pé |
+    if "|" in txt:
+        passos.append("📌 **Regra:** Identificamos frações com barra em pé (`|`).")
+    
+    # Precedência 1: Potências
+    if "**" in txt or "^" in txt:
+        passos.append("1️⃣ **1º Passo (Potências):** Resolvemos primeiro as potenciações (`**`).")
+    
+    # Precedência 2: Multiplicações e Divisões
+    if "*" in txt or "." in txt or "/" in txt or "|" in txt:
+        passos.append("2️⃣ **Ordem de Operações:** Resolvemos **Multiplicações e Divisões** da esquerda para a direita antes de somar ou subtrair.")
+
+    return passos
+
 # Menu Lateral com Manual Completo
 st.sidebar.header("📖 Manual Completo")
 st.sidebar.caption("Exemplos de sintaxe aceitos:")
@@ -118,7 +129,7 @@ st.sidebar.markdown("""
 | :--- | :--- | :--- |
 | **Soma de Fração** | `3\|4 + 6\|8` | Barra em pé `\|` indica fração |
 | **Subtração Fração** | `5\|9 - 2\|5` | Subtração usando fração em pé |
-| **Multiplicação Ponto**| `3.4` ou `6*7` | O ponto `.` realiza a multiplicação |
+| **Multiplicação Ponto**| `15.1|9.4 + 8` | O ponto `.` realiza a multiplicação |
 | **Número Decimal** | `2,3333` | Usa vírgula `,` para casas decimais |
 | **Potência** | `5**6` ou `5^6` | **5** elevado à **potência de 6** |
 | **Fatorial Simples** | `5!` | `5 * 4 * 3 * 2 * 1` |
@@ -134,20 +145,20 @@ st.sidebar.markdown("""
 st.sidebar.divider()
 st.sidebar.info("💡 **Dicas:**\n- **Vírgula (,)**: Decimais (`2,5 + 1,2`)\n- **Ponto (.)**: Multiplicação (`3.4` = 3x4)\n- **Barra (`|`)**: Frações (`3|4`)")
 
-# Header Estilizado (Hero Card)
+# Header Estilizado
 st.markdown("""
     <div class="hero-card">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="font-size: 2.8rem; background: #10b98120; padding: 12px; border-radius: 14px; border: 1px solid #10b98140;">🧮</div>
             <div>
                 <div class="hero-title">Calculadora Universal</div>
-                <div class="hero-subtitle">Resolução inteligente de expressões, frações e equações com passo a passo detalhado.</div>
+                <div class="hero-subtitle">Resolução inteligente de expressões, frações e equações com explicação passo a passo real.</div>
             </div>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
-# Cards de Recursos/Dicas Rápidas na tela inicial
+# Cards Informativos
 c1, c2, c3 = st.columns(3)
 with c1:
     st.markdown("""
@@ -167,39 +178,36 @@ with c3:
     st.markdown("""
         <div class="feature-card">
             <div class="feature-title">✖️ Multiplicação com .</div>
-            <div class="feature-desc">Digite <code>3.4</code> para multiplicar 3 por 4 (e <code>2,5</code> para decimais).</div>
+            <div class="feature-desc">Digite <code>15.1|9.4 + 8</code> para multiplicar e somar.</div>
         </div>
     """, unsafe_allow_html=True)
 
 st.write("")
 
-# Inicializa estado da consulta para aceitar cliques nos atalhos
 if "query_input" not in st.session_state:
     st.session_state["query_input"] = ""
 
-# Atalhos rápidos (Chips Clicáveis)
 st.caption("⚡ **Exemplos rápidos (clique para preencher):**")
 col_e1, col_e2, col_e3, col_e4, col_e5 = st.columns(5)
 
-if col_e1.button("3|4 + 6|8"):
+if col_e1.button("15.1|9.4 + 8"):
+    st.session_state["query_input"] = "15.1|9.4 + 8"
+if col_e2.button("3|4 + 6|8"):
     st.session_state["query_input"] = "3|4 + 6|8"
-if col_e2.button("5|9 - 2|5"):
+if col_e3.button("5|9 - 2|5"):
     st.session_state["query_input"] = "5|9 - 2|5"
-if col_e3.button("5**6"):
+if col_e4.button("5**6"):
     st.session_state["query_input"] = "5**6"
-if col_e4.button("5!"):
+if col_e5.button("5!"):
     st.session_state["query_input"] = "5!"
-if col_e5.button("3.4 + 2,5"):
-    st.session_state["query_input"] = "3.4 + 2,5"
 
-# Campo de Entrada Principal
 col_in, col_btn = st.columns([4, 1])
 
 with col_in:
     entrada = st.text_input(
         "Digite sua conta ou comando:",
         value=st.session_state["query_input"],
-        placeholder="Ex: 3|4 + 6|8   |   2,5 + 3,3333   |   3.4   |   5!",
+        placeholder="Ex: 15.1|9.4 + 8   |   3|4 + 6|8   |   5**6   |   5!",
         label_visibility="collapsed"
     ).strip().lower()
 
@@ -208,7 +216,6 @@ with col_btn:
 
 st.divider()
 
-# Lógica de Cálculo
 if botao or entrada:
     if not entrada:
         st.warning("⚠️ Por favor, digite uma expressão antes de calcular.")
@@ -225,11 +232,11 @@ if botao or entrada:
                 
                 st.success(f"### 🎯 Resultado: **{num}{sinais} = {res_fat}**")
                 
-                with st.expander("📝 Passo a Passo do Fatorial", expanded=True):
+                with st.expander("📝 Passo a Passo Explicativo", expanded=True):
                     passos = [str(i) for i in range(num, 0, -ordem)]
-                    st.write(f"1. **Tipo de Fatorial:** Fatorial ({sinais}) com salto de {ordem} em {ordem}.")
-                    st.write(f"2. **Decomposição:** `{' * '.join(passos)}`")
-                    st.write(f"3. **Resultado:** **{res_fat}**")
+                    st.write(f"1. **Tipo de Operação:** Fatorial ({sinais}) decrementando de {ordem} em {ordem}.")
+                    st.write(f"2. **Multiplicação Sequencial:** `{' * '.join(passos)}`")
+                    st.write(f"3. **Resultado Final:** **{res_fat}**")
 
             # 2. REGRA DE TRÊS
             elif entrada.startswith(("regra3", "regra de 3", "r3")):
@@ -244,158 +251,94 @@ if botao or entrada:
                         
                         st.success(f"### 🎯 Resultado: x = **{x_str}**")
                         
-                        with st.expander("📝 Passo a Passo da Resolução", expanded=True):
+                        with st.expander("📝 Passo a Passo Explicativo", expanded=True):
                             st.write("1. **Armando a Proporção:**")
                             st.latex(fr"\frac{{{str(a).replace('.', ',')}}}{{{str(b).replace('.', ',')}}} = \frac{{{str(c).replace('.', ',')}}}{{x}}")
-                            st.write("2. **Multiplicação Cruzada:**")
+                            st.write("2. **Cruzando os Valores:** Multiplicamos os meios pelos extremos:")
                             st.latex(fr"{str(a).replace('.', ',')} \cdot x = {str(b).replace('.', ',')} \cdot {str(c).replace('.', ',')}")
                             st.latex(fr"{str(a).replace('.', ',')} \cdot x = {str(b*c).replace('.', ',')}")
-                            st.write("3. **Isolando X:**")
-                            st.latex(fr"x = {x_str}")
+                            st.write("3. **Isolando X:** Passamos o valor dividindo:")
+                            st.latex(fr"x = \frac{{{str(b*c).replace('.', ',')}}}{{{str(a).replace('.', ',')}}} = {x_str}")
                     else:
                         st.error("❌ O primeiro valor não pode ser zero!")
                 else:
                     st.error("❌ Digite 3 valores (ex: 'r3 3 15 8').")
 
-            # 3. SEQUÊNCIA / DESCOBRIR LEI DE FORMAÇÃO
-            elif entrada.startswith(("seq ", "sequencia ", "sequência ")):
-                numeros = re.findall(r"-?\d+(?:,\d+)?", entrada.replace("seq", "").replace("uência", "").replace("uencia", ""))
-                if len(numeros) >= 2:
-                    valores = [sp.sympify(num.replace(",", ".")) for num in numeros]
-                    pontos = {i + 1: val for i, val in enumerate(valores)}
-                    lei_encontrada = sp.simplify(sp.interpolate(pontos, n))
-                    
-                    st.success(f"### 🎯 Lei de Formação Encontrada: A_n = **{str(lei_encontrada).replace('.', ',')}**")
-                    with st.expander("📝 Passo a Passo", expanded=True):
-                        st.write("1. **Termos fornecidos na sequência:**")
-                        st.code(f"{[str(v).replace('.', ',') for v in valores]}")
-                        st.write("2. **Fórmula geral obtida:**")
-                        st.latex(fr"A_n = {sp.latex(lei_encontrada)}")
-                else:
-                    st.error("❌ Informe pelo menos 2 termos!")
-
-            # 4. LEI DE FORMAÇÃO DIRETA
-            elif re.match(r"^a_?n\s*=", entrada):
-                expressao_lei = entrada.split("=")[1].strip()
-                expressao_lei = re.sub(r"n(\d+)", r"n*\1", expressao_lei)
-                expressao_lei = re.sub(r"(\d+)n", r"\1*n", expressao_lei)
-                expressao_lei = expressao_lei.replace("^", "**").replace(".", "*").replace(",", ".")
-                expr_seq = sp.sympify(expressao_lei, locals={"n": n})
-                
-                termos = [expr_seq.subs(n, i) for i in range(1, 6)]
-                
-                st.success(f"### 🎯 Lei de Formação: A_n = **{str(expr_seq).replace('.', ',')}**")
-                with st.expander("📝 Passo a Passo (Primeiros 5 Termos)", expanded=True):
-                    for idx, val in enumerate(termos, 1):
-                        val_str = str(val).replace(".", ",")
-                        st.write(f"* Para `n = {idx}` ➔ `A_{idx} = {val_str}`")
-
-            # 5. MMC E MDC
-            elif entrada.startswith(("mmc", "mdc")):
-                comando = entrada[:3]
-                numeros = re.findall(r"\d+", entrada)
-                if numeros:
-                    lista_num = [int(num) for num in numeros]
-                    res = sp.lcm(lista_num) if comando == "mmc" else sp.gcd(lista_num)
-                    
-                    st.success(f"### 🎯 Resultado ({comando.upper()}): **{res}**")
-                    with st.expander("📝 Passo a Passo", expanded=True):
-                        st.write(f"1. Valores analisados: `{lista_num}`")
-                        st.write(f"2. {comando.upper()} final obtido: **{res}**")
-                else:
-                    st.error("❌ Informe os números para o cálculo!")
-
-            # 6. ÂNGULOS DE TRIÂNGULO
-            elif "angulo" in entrada:
-                valores = re.findall(r"\d+", entrada)
-                if len(valores) == 2:
-                    ang1, ang2 = int(valores[0]), int(valores[1])
-                    soma = ang1 + ang2
-                    res_angulo = 180 - soma
-                    if res_angulo <= 0:
-                        st.error("❌ A soma dos ângulos deve ser menor que 180°!")
-                    else:
-                        st.success(f"### 🎯 3º Ângulo: **{res_angulo}°**")
-                        with st.expander("📝 Passo a Passo", expanded=True):
-                            st.write("1. A soma dos ângulos internos de um triângulo é **180°**.")
-                            st.write(f"2. Somando os ângulos conhecidos: `{ang1}° + {ang2}° = {soma}°`")
-                            st.write(f"3. Subtraindo do total: `180° - {soma}° = {res_angulo}°`")
-                else:
-                    st.error("❌ Digite 2 ângulos (ex: 'angulo 60 50').")
-
-            # 7. OPERAÇÕES GERAIS (FRAÇÕES, DECIMAIS COM VÍRGULA, MULTIPLICAÇÃO COM PONTO)
+            # 3. EXPRESSÕES GERAIS E OPERAÇÕES COM FRAÇÕES / MULTIPLICAÇÕES
             else:
                 usou_barra_em_pe = "|" in entrada
                 usou_potencia_exp = "**" in entrada or "^" in entrada
-                entrada_formatada = entrada
-
-                if "=" in entrada_formatada:
-                    partes = entrada_formatada.split("=")
-                    if len(partes) == 2:
-                        entrada_formatada = f"({partes[0].strip()}) - ({partes[1].strip()})"
-
-                # Ajuste de operadores
-                entrada_formatada = entrada_formatada.replace("x", "*").replace("X", "*")
+                
+                # Prepara expressão para o SymPy
+                entrada_formatada = entrada.replace("x", "*").replace("X", "*")
                 entrada_formatada = entrada_formatada.replace(".", "*")
                 entrada_formatada = entrada_formatada.replace(",", ".")
+                entrada_formatada = entrada_formatada.replace("|", "/")
+                entrada_formatada = entrada_formatada.replace("^", "**")
 
-                entrada_formatada = entrada_formatada.replace("raiz de", "sqrt").replace("raiz", "sqrt").replace("√", "sqrt")
-                entrada_formatada = re.sub(r"sqrt\s*\((.*?)\)", r"sqrt(\1)", entrada_formatada)
-                entrada_formatada = re.sub(r"sqrt\s*(\d+|\w+)", r"sqrt(\1)", entrada_formatada)
+                # Converte para expressão SymPy simbólica
+                expr_sym = sp.sympify(entrada_formatada, evaluate=False)
+                res_sym = sp.sympify(entrada_formatada, evaluate=True)
 
-                entrada_formatada = re.sub(r"(\d+)([a-z])", r"\1*\2", entrada_formatada)
-                entrada_formatada = re.sub(r"(\d+)\(", r"\1*(", entrada_formatada)
-                
-                # Converte barra em pé | para divisão interna
-                entrada_formatada = entrada_formatada.replace("|", "/").replace("÷", "/").replace(":", "/").replace("^", "**")
+                res_float = float(res_sym.evalf())
+                res_formatado = int(res_float) if res_float.is_integer() else round(res_float, 4)
+                res_com_virgula = str(res_formatado).replace(".", ",")
 
-                funcoes_locais = {"sqrt": sp.sqrt, "factorial": sp.factorial, "sp": sp}
-                expr = sp.sympify(entrada_formatada, locals=funcoes_locais)
-
-                if expr.free_symbols:
-                    lista_vars = sorted(list(expr.free_symbols), key=lambda s: s.name)
-                    var_alvo = x if x in lista_vars else lista_vars[0]
-                    solucoes = sp.solve(expr, var_alvo)
-                    
-                    st.success(f"### 🎯 Solução: {var_alvo} = **{solucoes}**")
-                    with st.expander("📝 Passo a Passo da Equação", expanded=True):
-                        st.write("1. **Igualando a expressão a zero:**")
-                        st.latex(f"{sp.latex(expr)} = 0")
-                        st.write("2. **Isolando a variável:**")
-                        st.latex(f"{var_alvo} = {sp.latex(solucoes)}")
+                # Formatação da fração com barra em pé |
+                frac_str = ""
+                if hasattr(res_sym, "p") and hasattr(res_sym, "q"):
+                    frac_str = f"{res_sym.p}|{res_sym.q}" if res_sym.q != 1 else str(res_sym)
                 else:
-                    res_float = float(expr.evalf())
-                    res_formatado = int(res_float) if res_float.is_integer() else round(res_float, 4)
-                    res_com_virgula = str(res_formatado).replace(".", ",")
+                    frac_str = str(res_sym)
 
-                    # Exibição do Resultado
-                    if usou_barra_em_pe and isinstance(expr, (sp.Rational, sp.Integer)):
-                        frac_str = f"{expr.p}|{expr.q}" if hasattr(expr, "q") and expr.q != 1 else str(expr)
-                        st.success(f"### 🎯 Resultado em Fração: **{frac_str}**")
-                    else:
-                        st.success(f"### 🎯 Resultado: **{res_com_virgula}**")
+                # Exibição do Resultado Principal
+                if usou_barra_em_pe or isinstance(res_sym, sp.Rational):
+                    st.success(f"### 🎯 Resultado em Fração: **{frac_str}**  *(Decimal: {res_com_virgula})*")
+                else:
+                    st.success(f"### 🎯 Resultado: **{res_com_virgula}**")
 
-                    # Passo a Passo
-                    with st.expander("📝 Passo a Passo do Cálculo", expanded=True):
-                        if usou_potencia_exp and not usou_barra_em_pe:
-                            st.write("1. **Cálculo de Potência:** O operador `**` eleva a base ao expoente indicado.")
-                            st.latex(f"{sp.latex(sp.sympify(entrada_formatada, evaluate=False))} = {res_com_virgula}")
+                # PASSO A PASSO DETALHADO E EXPLICATIVO
+                with st.expander("📝 Passo a Passo Detalhado do Cálculo", expanded=True):
+                    st.markdown("#### 1️⃣ Entendendo a Expressão:")
+                    st.write(f"Sua conta original digitada foi: `{entrada}`")
+                    
+                    # Explicação do Ponto e Barra
+                    if "." in entrada or "|" in entrada:
+                        st.info("💡 **Convenções Utilizadas:**\n- O **ponto (`.`)** indica multiplicação.\n- A **barra em pé (`|`)** indica fração (divisão).")
+
+                    st.markdown("#### 2️⃣ Ordem de Precedência das Operações (PEMDAS):")
+                    
+                    # Decomposição em etapas simbólicas
+                    if isinstance(expr_sym, sp.Add):
+                        st.write("Pela regra matemática, dividimos a expressão entre as **multiplicações/divisões** (blocos prioritários) e as **somas/subtrações**:")
                         
-                        elif usou_barra_em_pe:
-                            frac_exibicao = entrada.replace(" ", "").replace("*", " * ").replace("/", " / ").replace("+", " + ").replace("-", " - ")
-                            st.write(f"1. **Operação de Fração armada:** `{frac_exibicao}`")
-                            st.write("2. **Resultado Simplificado (Fração com barra em pé):**")
-                            if hasattr(expr, "q") and expr.q != 1:
-                                st.code(f"{expr.p}|{expr.q}")
+                        termos = expr_sym.args
+                        for idx, termo in enumerate(termos, 1):
+                            val_termo = sp.sympify(termo)
+                            val_eval = val_termo.evalf()
+                            
+                            if hasattr(val_termo, "p") and hasattr(val_termo, "q") and val_termo.q != 1:
+                                termo_exibicao = f"{val_termo.p}|{val_termo.q}"
                             else:
-                                st.code(f"{expr}")
-                            st.write(f"3. **Valor Decimal:** `{res_com_virgula}`")
-                        
-                        else:
-                            st.write("1. **Expressão Armada:**")
-                            st.latex(sp.latex(sp.sympify(entrada_formatada, evaluate=False)))
-                            st.write("2. **Resultado Final:**")
-                            st.latex(f"= {res_com_virgula}")
+                                termo_exibicao = str(val_termo)
 
-        except Exception:
-            st.error("❌ Expressão não reconhecida. Verifique a sintaxe ou consulte o Manual na barra lateral.")
+                            st.write(f"• **Bloco {idx}:** `{sp.latex(termo)}` ➔ Resultado deste bloco = **{termo_exibicao}**")
+
+                        st.markdown("#### 3️⃣ Somando os Resultados dos Blocos:")
+                        st.write("Agora realizamos a adição dos blocos calculados:")
+                        
+                        if hasattr(res_sym, "p") and hasattr(res_sym, "q") and res_sym.q != 1:
+                            st.latex(f"{sp.latex(expr_sym)} = \\frac{{{res_sym.p}}}{{{res_sym.q}}}")
+                            st.write(f"• **Formato Fração:** `{res_sym.p}|{res_sym.q}`")
+                        else:
+                            st.latex(f"{sp.latex(expr_sym)} = {res_com_virgula}")
+                            
+                        st.write(f"• **Formato Decimal:** `{res_com_virgula}`")
+
+                    else:
+                        st.write("Resolvemos a operação diretamente:")
+                        st.latex(f"{sp.latex(expr_sym)} = {sp.latex(res_sym)}")
+                        st.write(f"• **Resultado final:** `{res_com_virgula}` (ou `{frac_str}` em fração).")
+
+        except Exception as e:
+            st.error("❌ Não foi possível calcular a expressão. Verifique a sintaxe ou consulte os exemplos na barra lateral.")
