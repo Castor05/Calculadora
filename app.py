@@ -43,23 +43,26 @@ st.sidebar.caption("Exemplos de sintaxe aceitos:")
 st.sidebar.markdown("""
 | Operação | Exemplo | Descrição |
 | :--- | :--- | :--- |
-| **Soma** | `15 + 25` | Soma simples |
-| **Subtração** | `50 - 18` | Subtração simples |
-| **Multiplicação** | `6 * 7` ou `6x7` | Multiplicação |
-| **Divisão** | `100 / 4` ou `100 ÷ 4` | Divisão |
-| **Fração** | `3|4 + 2|5` ou `12/15` | Operações com fração |
+| **Soma de Fração** | `1|2 + 3|4` | Soma frações com barras `\|` ou `/` |
+| **Subtração de Fração** | `3|4 - 1|2` | Subtrai frações |
+| **Multiplicação de Fração** | `1|2 * 3|4` ou `1|2 x 3|4` | Multiplica frações |
+| **Divisão de Fração** | `1|2 / 3|4` ou `1|2 ÷ 3|4` | Divide frações |
+| **Soma Comum** | `15 + 25` | Soma de números |
+| **Subtração Comum** | `50 - 18` | Subtração simples |
+| **Multiplicação Comum** | `6 * 7` ou `6x7` | Multiplicação |
+| **Divisão Comum** | `100 / 4` | Divisão simples |
 | **Potência** | `2^5` ou `x^2 - 4 = 0` | Elevação de potência |
 | **Raiz Quadrada** | `raiz de 49` ou `√81` | Cálculo de raiz |
 | **Regra de 3** | `r3 3 15 8` | Regra de três simples |
 | **Ângulos** | `angulo 60 50` | Descobre o 3º ângulo do triângulo |
 | **Equação** | `2x + 5 = 15` | Resolve a variável X |
-| **Sequência** | `seq 2, 4, 6, 8` | **Descobre a Lei de Formação a partir dos números** |
-| **Lei de Form.** | `an = 3n - 1` | **Gera os 5 primeiros termos a partir da lei** |
+| **Sequência** | `seq 2, 4, 6, 8` | Descobre a Lei de Formação a partir dos números |
+| **Lei de Form.** | `an = 3n - 1` | Gera os 5 primeiros termos a partir da lei |
 | **MMC / MDC** | `mmc 12 18` | Calcula o MMC ou MDC |
 """)
 
 st.sidebar.divider()
-st.sidebar.info("💡 **Dica:** Você pode usar `|` ou `/` para frações e divisões!")
+st.sidebar.info("💡 **Dica:** O passo a passo agora mostra a conta armada como no papel de caderno!")
 
 # Cabeçalho
 col_logo, col_titulo = st.columns([1, 5])
@@ -74,7 +77,7 @@ st.divider()
 # Entrada do usuário
 entrada = st.text_input(
     "Digite sua conta ou comando:",
-    placeholder="Ex: seq 2, 4, 6, 8   |   3|4 + 2|5   |   raiz de 144"
+    placeholder="Ex: 15 + 25   |   1|2 + 3|4   |   raiz de 144"
 ).strip().lower()
 
 btn_col1, btn_col2, btn_col3 = st.columns([1, 2, 1])
@@ -88,6 +91,9 @@ if botao:
         st.warning("⚠️ Por favor, digite uma expressão antes de calcular.")
     else:
         try:
+            # Detecta contas simples armadas (ex: 15 + 25, 50 - 18, 6 * 7, 100 / 4)
+            match_operacao = re.match(r"^(\d+(?:[\.,]\d+)?)\s*([\+\-\*xX\/÷:])\s*(\d+(?:[\.,]\d+)?)$", entrada)
+
             # 1. REGRA DE TRÊS
             if entrada.startswith(("regra3", "regra de 3", "r3")):
                 texto_limpo = re.sub(r"^(regra\s*de\s*3|regra3|r3)", "", entrada).strip()
@@ -102,8 +108,8 @@ if botao:
                         st.success(f"### 🎯 Resultado: x = **{x_str}**")
                         
                         with st.expander("📝 Passo a Passo da Resolução", expanded=True):
-                            st.write("1. **Montagem da Proporção:**")
-                            st.latex(fr"\frac{{{a}}}{{{b}}} = \frac{{{c}}}{{x}}")
+                            st.write("1. **Armando a Proporção:**")
+                            st.latex(fr"\begin{{array}}{{c}} \frac{{{a}}}{{{b}}} = \frac{{{c}}}{{x}} \end{{array}}")
                             st.write("2. **Multiplicação Cruzada:**")
                             st.latex(fr"{a} \cdot x = {b} \cdot {c}")
                             st.latex(fr"{a} \cdot x = {b*c}")
@@ -179,7 +185,44 @@ if botao:
                 else:
                     st.error("❌ Digite 2 ângulos (ex: 'angulo 60 50').")
 
-            # 6. OPERAÇÕES GERAIS (FRAÇÕES, RAÍZES, SOMA, MULTIPLICAÇÃO, DIVISÃO, EQUAÇÕES)
+            # 6. OPERAÇÕES ARMADAS SIMPLES (SOMA, SUBTRAÇÃO, MULTIPLICAÇÃO)
+            elif match_operacao:
+                n1_str, op, n2_str = match_operacao.groups()
+                n1 = float(n1_str.replace(",", "."))
+                n2 = float(n2_str.replace(",", "."))
+                op_symbol = "+" if op == "+" else "-" if op == "-" else "\\times" if op in ["*", "x", "X"] else "\\div"
+                
+                if op == "+":
+                    res = n1 + n2
+                elif op == "-":
+                    res = n1 - n2
+                elif op in ["*", "x", "X"]:
+                    res = n1 * n2
+                else:
+                    res = n1 / n2 if n2 != 0 else None
+
+                if res is None:
+                    st.error("❌ Divisão por zero não é permitida!")
+                else:
+                    res_fmt = int(res) if res.is_integer() else round(res, 4)
+                    n1_fmt = int(n1) if n1.is_integer() else n1
+                    n2_fmt = int(n2) if n2.is_integer() else n2
+
+                    st.success(f"### 🎯 Resultado: **{str(res_fmt).replace('.', ',')}**")
+
+                    with st.expander("📝 Passo a Passo (Conta Armada)", expanded=True):
+                        st.write("Armando a conta no papel:")
+                        # Renderiza a conta armada estilo papel
+                        st.latex(fr"""
+                        \begin{{array}}{{r}}
+                            {n1_fmt} \\
+                            {op} \; {n2_fmt} \\
+                            \hline
+                            \mathbf{{{res_fmt}}}
+                        \end{{array}}
+                        """)
+
+            # 7. FRAÇÕES, RAÍZES E EQUAÇÕES
             else:
                 digitou_fracao = "|" in entrada
                 entrada_formatada = entrada
@@ -189,7 +232,6 @@ if botao:
                     if len(partes) == 2:
                         entrada_formatada = f"({partes[0].strip()}) - ({partes[1].strip()})"
 
-                # Ajustes de símbolos
                 entrada_formatada = entrada_formatada.replace("x", "*").replace("X", "*")
                 entrada_formatada = entrada_formatada.replace("raiz de", "sqrt").replace("raiz", "sqrt").replace("√", "sqrt")
                 entrada_formatada = re.sub(r"sqrt\s*\((.*?)\)", r"sqrt(\1)", entrada_formatada)
@@ -198,6 +240,7 @@ if botao:
                 entrada_formatada = re.sub(r"(\d+),(\d+)", r"(\1\2/10**len('\2'))", entrada_formatada)
                 entrada_formatada = re.sub(r"(\d+)([a-z])", r"\1*\2", entrada_formatada)
                 entrada_formatada = re.sub(r"(\d+)\(", r"\1*(", entrada_formatada)
+                
                 entrada_formatada = entrada_formatada.replace("|", "/").replace("÷", "/").replace(":", "/").replace("^", "**")
 
                 funcoes_locais = {"sqrt": sp.sqrt, "factorial": sp.factorial, "sp": sp}
@@ -218,19 +261,18 @@ if botao:
                     res_float = float(expr.evalf())
                     res_formatado = int(res_float) if res_float.is_integer() else round(res_float, 4)
                     
-                    if digitou_fracao and isinstance(expr, (sp.Rational, sp.Integer)):
+                    if digitou_fracao or isinstance(expr, sp.Rational):
                         fracao_estilo = str(expr).replace("/", "|")
                         st.success(f"### 🎯 Resultado em Fração: **{fracao_estilo}**")
                     else:
                         st.success(f"### 🎯 Resultado: **{str(res_formatado).replace('.', ',')}**")
 
-                    # Passo a Passo para expressões aritméticas
                     with st.expander("📝 Passo a Passo do Cálculo", expanded=True):
-                        st.write("1. **Expressão interpretada:**")
+                        st.write("1. **Expressão Armada:**")
+                        st.latex(sp.latex(sp.sympify(entrada_formatada, evaluate=False)))
+                        st.write("2. **Resultado Simplificado / Irredutível:**")
                         st.latex(sp.latex(expr))
-                        st.write("2. **Resultado simplificado/exato:**")
-                        st.latex(fr"= {sp.latex(expr)}")
-                        st.write(f"3. **Valor numérico final:** **{res_formatado}**")
+                        st.write(f"3. **Valor Numérico Final:** `{res_formatado}`")
 
         except Exception:
             st.error("❌ Expressão não reconhecida. Verifique a sintaxe ou consulte o Manual na barra lateral.")
