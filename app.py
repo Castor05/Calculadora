@@ -10,26 +10,90 @@ st.set_page_config(
     layout="wide"
 )
 
-# Estilização CSS personalizada
+# Estilização CSS Personalizada para Interface Premium
 st.markdown("""
     <style>
-    div.stButton > button:first-child {
-        background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
-        color: white;
-        font-weight: bold;
-        font-size: 16px;
-        border-radius: 10px;
-        padding: 0.6em 1em;
-        border: none;
-        width: 100%;
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    /* Estilo Geral e Fundo */
+    .stApp {
+        background-color: #0e1117;
     }
-    div.stButton > button:first-child:hover {
-        background: linear-gradient(90deg, #45a049 0%, #3d8b40 100%);
+    
+    /* Hero Banner / Card do Cabeçalho */
+    .hero-card {
+        background: linear-gradient(135deg, #1e2638 0%, #111827 100%);
+        border: 1px solid #2d3748;
+        border-radius: 16px;
+        padding: 24px 32px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+    
+    .hero-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #4ef081 0%, #38bdf8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 6px;
+    }
+
+    .hero-subtitle {
+        color: #94a3b8;
+        font-size: 1.05rem;
+        margin: 0;
+    }
+
+    /* Cards Informativos de Recursos */
+    .feature-card {
+        background: #1a202c;
+        border: 1px solid #2d3748;
+        border-radius: 12px;
+        padding: 14px 18px;
+        text-align: center;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .feature-card:hover {
+        border-color: #4ef081;
         transform: translateY(-2px);
     }
+    .feature-title {
+        font-size: 0.9rem;
+        color: #e2e8f0;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    .feature-desc {
+        font-size: 0.8rem;
+        color: #94a3b8;
+    }
+
+    /* Ajuste de Botões Gerais */
+    div.stButton > button {
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* Botão Principal Calcular */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        font-size: 1rem;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        width: 100%;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(90deg, #059669 0%, #047857 100%);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        transform: translateY(-1px);
+    }
+
+    /* Sidebar */
     section[data-testid="stSidebar"] {
-        background-color: #1a1c23;
+        background-color: #111827;
+        border-right: 1px solid #1f2937;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -52,56 +116,104 @@ st.sidebar.caption("Exemplos de sintaxe aceitos:")
 st.sidebar.markdown("""
 | Operação | Exemplo | Descrição |
 | :--- | :--- | :--- |
-| **Soma de Fração** | `3\|4 + 6\|8` | Barra em pé `\|` indica fração (ex: três quartos) |
-| **Subtração de Fração** | `5\|9 - 2\|5` | Subtração usando fração em pé |
-| **Multiplicação Fração** | `3\|4 * 2\|5` | Multiplica frações |
-| **Divisão de Fração** | `3\|4 / 2\|5` | Divide frações |
-| **Multiplicação com Ponto** | `3.4` ou `6*7` | O ponto `.` realiza a multiplicação (3 x 4) |
+| **Soma de Fração** | `3\|4 + 6\|8` | Barra em pé `\|` indica fração |
+| **Subtração Fração** | `5\|9 - 2\|5` | Subtração usando fração em pé |
+| **Multiplicação Ponto**| `3.4` ou `6*7` | O ponto `.` realiza a multiplicação |
 | **Número Decimal** | `2,3333` | Usa vírgula `,` para casas decimais |
 | **Potência** | `5**6` ou `5^6` | **5** elevado à **potência de 6** |
 | **Fatorial Simples** | `5!` | `5 * 4 * 3 * 2 * 1` |
 | **Fatorial Duplo** | `5!!` | `5 * 3 * 1` |
 | **Fatorial Triplo** | `6!!!` | `6 * 3` |
-| **Raiz Quadrada** | `raiz de 49` ou `√81` | Cálculo de raiz |
+| **Raiz Quadrada** | `raiz de 49` | Cálculo de raiz |
 | **Regra de 3** | `r3 3 15 8` | Regra de três simples |
-| **Ângulos** | `angulo 60 50` | Descobre o 3º ângulo do triângulo |
+| **Ângulos** | `angulo 60 50` | Descobre o 3º ângulo |
 | **Equação** | `2x + 5 = 15` | Resolve a variável X |
 | **Sequência** | `seq 2, 4, 6, 8` | Descobre a Lei de Formação |
-| **Lei de Form.** | `an = 3n - 1` | Gera os primeiros 5 termos |
-| **MMC / MDC** | `mmc 12 18` | Calcula o MMC ou MDC |
 """)
 
 st.sidebar.divider()
-st.sidebar.info("💡 **Dicas de Sintaxe:**\n- Use **vírgula (,)** para decimais: `2,5 + 1,2`\n- Use **ponto (.)** para multiplicar: `3.4` (3x4)")
+st.sidebar.info("💡 **Dicas:**\n- **Vírgula (,)**: Decimais (`2,5 + 1,2`)\n- **Ponto (.)**: Multiplicação (`3.4` = 3x4)\n- **Barra (`|`)**: Frações (`3|4`)")
 
-# Cabeçalho
-col_logo, col_titulo = st.columns([1, 5])
-with col_logo:
-    st.title("🧮")
-with col_titulo:
-    st.title("Calculadora Universal")
-    st.caption("Resolva cálculos com explicação passo a passo automática.")
+# Header Estilizado (Hero Card)
+st.markdown("""
+    <div class="hero-card">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="font-size: 2.8rem; background: #10b98120; padding: 12px; border-radius: 14px; border: 1px solid #10b98140;">🧮</div>
+            <div>
+                <div class="hero-title">Calculadora Universal</div>
+                <div class="hero-subtitle">Resolução inteligente de expressões, frações e equações com passo a passo detalhado.</div>
+            </div>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
+# Cards de Recursos/Dicas Rápidas na tela inicial
+c1, c2, c3 = st.columns(3)
+with c1:
+    st.markdown("""
+        <div class="feature-card">
+            <div class="feature-title">📐 Frações em Pé</div>
+            <div class="feature-desc">Escreva <code>3|4 + 6|8</code> para somar três quartos e seis oitavos.</div>
+        </div>
+    """, unsafe_allow_html=True)
+with c2:
+    st.markdown("""
+        <div class="feature-card">
+            <div class="feature-title">⚡ Potência com **</div>
+            <div class="feature-desc">Use <code>5**6</code> para calcular 5 elevado à potência de 6.</div>
+        </div>
+    """, unsafe_allow_html=True)
+with c3:
+    st.markdown("""
+        <div class="feature-card">
+            <div class="feature-title">✖️ Multiplicação com .</div>
+            <div class="feature-desc">Digite <code>3.4</code> para multiplicar 3 por 4 (e <code>2,5</code> para decimais).</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+st.write("")
+
+# Inicializa estado da consulta para aceitar cliques nos atalhos
+if "query_input" not in st.session_state:
+    st.session_state["query_input"] = ""
+
+# Atalhos rápidos (Chips Clicáveis)
+st.caption("⚡ **Exemplos rápidos (clique para preencher):**")
+col_e1, col_e2, col_e3, col_e4, col_e5 = st.columns(5)
+
+if col_e1.button("3|4 + 6|8"):
+    st.session_state["query_input"] = "3|4 + 6|8"
+if col_e2.button("5|9 - 2|5"):
+    st.session_state["query_input"] = "5|9 - 2|5"
+if col_e3.button("5**6"):
+    st.session_state["query_input"] = "5**6"
+if col_e4.button("5!"):
+    st.session_state["query_input"] = "5!"
+if col_e5.button("3.4 + 2,5"):
+    st.session_state["query_input"] = "3.4 + 2,5"
+
+# Campo de Entrada Principal
+col_in, col_btn = st.columns([4, 1])
+
+with col_in:
+    entrada = st.text_input(
+        "Digite sua conta ou comando:",
+        value=st.session_state["query_input"],
+        placeholder="Ex: 3|4 + 6|8   |   2,5 + 3,3333   |   3.4   |   5!",
+        label_visibility="collapsed"
+    ).strip().lower()
+
+with col_btn:
+    botao = st.button("🚀 Calcular", type="primary")
 
 st.divider()
 
-# Entrada do usuário
-entrada = st.text_input(
-    "Digite sua conta ou comando:",
-    placeholder="Ex: 3|4 + 6|8   |   2,5 + 3,3333   |   3.4   |   5!"
-).strip().lower()
-
-btn_col1, btn_col2, btn_col3 = st.columns([1, 2, 1])
-with btn_col2:
-    botao = st.button("🚀 Calcular Agora", type="primary")
-
-st.divider()
-
-if botao:
+# Lógica de Cálculo
+if botao or entrada:
     if not entrada:
         st.warning("⚠️ Por favor, digite uma expressão antes de calcular.")
     else:
         try:
-            # Detecta Fatorial (!, !!, !!!)
             match_fat = re.match(r"^(\d+)\s*(!{1,3})$", entrada)
 
             # 1. FATORIAL SIMPLES, DUPLO E TRIPLO
@@ -222,7 +334,7 @@ if botao:
                     if len(partes) == 2:
                         entrada_formatada = f"({partes[0].strip()}) - ({partes[1].strip()})"
 
-                # Ajuste para PONTO (.) virar multiplicação (*) e VÍRGULA (,) virar ponto decimal do Python
+                # Ajuste de operadores
                 entrada_formatada = entrada_formatada.replace("x", "*").replace("X", "*")
                 entrada_formatada = entrada_formatada.replace(".", "*")
                 entrada_formatada = entrada_formatada.replace(",", ".")
