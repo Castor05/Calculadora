@@ -2,7 +2,7 @@ import re
 import sympy as sp
 import streamlit as st
 
-# Configuração da página do site
+# Configuração da página
 st.set_page_config(
     page_title="Calculadora Universal",
     page_icon="🧮",
@@ -33,29 +33,33 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Inicializa os símbolos matemáticos do SymPy
+# Símbolos matemáticos
 x, y, z, n = sp.symbols("x y z n")
 
-# Menu Lateral (Sidebar)
-st.sidebar.header("📖 Guia de Comandos")
-st.sidebar.caption("Exemplos de como digitar:")
+# Menu Lateral com Manual Completo
+st.sidebar.header("📖 Manual Completo")
+st.sidebar.caption("Exemplos de sintaxe aceitos:")
 
 st.sidebar.markdown("""
 | Operação | Exemplo |
 | :--- | :--- |
-| **Raiz Quadrada** | `raiz de 25` ou `√16` |
+| **Soma** | `15 + 25` |
+| **Subtração** | `50 - 18` |
+| **Multiplicação** | `6 * 7` ou `6x7` |
+| **Divisão** | `100 / 4` ou `100 ÷ 4` |
+| **Fração** | `3|4 + 2|5` ou `12/15` |
+| **Potência** | `2^5` ou `x^2 - 4 = 0` |
+| **Raiz Quadrada** | `raiz de 49` ou `√81` |
 | **Regra de 3** | `r3 3 15 8` |
 | **Ângulos** | `angulo 60 50` |
-| **Equação** | `2x = 18` |
-| **Potência** | `x^2 - 4 = 0` |
+| **Equação** | `2x + 5 = 15` |
 | **Sequência** | `seq 2, 4, 6, 8` |
-| **Lei de Form.** | `an = 2n + 3` |
+| **Lei de Form.** | `an = 3n - 1` |
 | **MMC / MDC** | `mmc 12 18` |
-| **Fração** | `12|15 + 7|8` |
 """)
 
 st.sidebar.divider()
-st.sidebar.info("💡 **Dica:** Você pode usar `raiz de 9`, `sqrt(9)` ou `√9` que a calculadora entende!")
+st.sidebar.info("💡 **Dica:** Você pode usar `|` ou `/` para frações e divisões!")
 
 # Cabeçalho
 col_logo, col_titulo = st.columns([1, 5])
@@ -63,14 +67,14 @@ with col_logo:
     st.title("🧮")
 with col_titulo:
     st.title("Calculadora Universal")
-    st.caption("Resoluções matemáticas automáticas com explicação passo a passo.")
+    st.caption("Resolva cálculos com explicação passo a passo automática.")
 
 st.divider()
 
-# Campo de Entrada
+# Entrada do usuário
 entrada = st.text_input(
     "Digite sua conta ou comando:",
-    placeholder="Ex: raiz de 144   |   r3 3 15 8   |   2x = 18"
+    placeholder="Ex: 3|4 + 2|5   |   raiz de 144   |   r3 3 15 8"
 ).strip().lower()
 
 btn_col1, btn_col2, btn_col3 = st.columns([1, 2, 1])
@@ -84,7 +88,7 @@ if botao:
         st.warning("⚠️ Por favor, digite uma expressão antes de calcular.")
     else:
         try:
-            # 1. REGRA DE TRÊS SIMPLES
+            # 1. REGRA DE TRÊS
             if entrada.startswith(("regra3", "regra de 3", "r3")):
                 texto_limpo = re.sub(r"^(regra\s*de\s*3|regra3|r3)", "", entrada).strip()
                 numeros = re.findall(r"-?\d+(?:[\.,]\d+)?", texto_limpo)
@@ -97,22 +101,20 @@ if botao:
                         
                         st.success(f"### 🎯 Resultado: x = **{x_str}**")
                         
-                        tab1, tab2 = st.tabs(["📝 Passo a Passo", "📌 Fórmula"])
-                        with tab1:
-                            st.write("1. **Proporção:**")
+                        with st.expander("📝 Passo a Passo da Resolução", expanded=True):
+                            st.write("1. **Montagem da Proporção:**")
                             st.latex(fr"\frac{{{a}}}{{{b}}} = \frac{{{c}}}{{x}}")
                             st.write("2. **Multiplicação Cruzada:**")
+                            st.latex(fr"{a} \cdot x = {b} \cdot {c}")
                             st.latex(fr"{a} \cdot x = {b*c}")
                             st.write("3. **Isolando X:**")
                             st.latex(fr"x = \frac{{{b*c}}}{{{a}}} = {x_str}")
-                        with tab2:
-                            st.latex(r"\frac{a}{b} = \frac{c}{x} \implies x = \frac{b \cdot c}{a}")
                     else:
                         st.error("❌ O primeiro valor não pode ser zero!")
                 else:
-                    st.error("❌ Digite 3 valores válidos (ex: 'r3 3 15 8').")
+                    st.error("❌ Digite 3 valores (ex: 'r3 3 15 8').")
 
-            # 2. SEQUÊNCIA / LEI DE FORMAÇÃO POR TERMOS
+            # 2. SEQUÊNCIA / TERMOS
             elif entrada.startswith(("seq ", "sequencia ", "sequência ")):
                 numeros = re.findall(r"-?\d+(?:,\d+)?", entrada.replace("seq", "").replace("uência", "").replace("uencia", ""))
                 if len(numeros) >= 2:
@@ -121,16 +123,15 @@ if botao:
                     lei_encontrada = sp.simplify(sp.interpolate(pontos, n))
                     
                     st.success(f"### 🎯 Lei de Formação: A_n = **{lei_encontrada}**")
-                    
-                    with st.expander("📝 Detalhes do Cálculo", expanded=True):
-                        st.write("Analisando os termos fornecidos:")
-                        st.code(f"Termos: {valores}")
-                        st.write("Fórmula geral obtida:")
+                    with st.expander("📝 Passo a Passo", expanded=True):
+                        st.write("1. **Termos fornecidos:**")
+                        st.code(f"{valores}")
+                        st.write("2. **Fórmula geral obtida por interpolação:**")
                         st.latex(fr"A_n = {sp.latex(lei_encontrada)}")
                 else:
                     st.error("❌ Informe pelo menos 2 termos!")
 
-            # 3. LEI DE FORMAÇÃO DIRETA (an = ...)
+            # 3. LEI DE FORMAÇÃO DIRETA
             elif re.match(r"^a_?n\s*=", entrada):
                 expressao_lei = entrada.split("=")[1].strip()
                 expressao_lei = re.sub(r"n(\d+)", r"n*\1", expressao_lei)
@@ -141,11 +142,9 @@ if botao:
                 termos = [expr_seq.subs(n, i) for i in range(1, 6)]
                 
                 st.success(f"### 🎯 Lei de Formação: A_n = **{expr_seq}**")
-                
-                with st.expander("📝 Primeiros 5 Termos", expanded=True):
-                    cols = st.columns(5)
+                with st.expander("📝 Passo a Passo (Primeiros 5 Termos)", expanded=True):
                     for idx, val in enumerate(termos, 1):
-                        cols[idx-1].metric(label=f"n = {idx}", value=str(val))
+                        st.write(f"* Para `n = {idx}` ➔ `A_{idx} = {val}`")
 
             # 4. MMC E MDC
             elif entrada.startswith(("mmc", "mdc")):
@@ -156,7 +155,9 @@ if botao:
                     res = sp.lcm(lista_num) if comando == "mmc" else sp.gcd(lista_num)
                     
                     st.success(f"### 🎯 Resultado ({comando.upper()}): **{res}**")
-                    st.info(f"Valores calculados: `{lista_num}`")
+                    with st.expander("📝 Passo a Passo", expanded=True):
+                        st.write(f"1. Valores analisados: `{lista_num}`")
+                        st.write(f"2. {comando.upper()} final obtido: **{res}**")
                 else:
                     st.error("❌ Informe os números para o cálculo!")
 
@@ -171,14 +172,14 @@ if botao:
                         st.error("❌ A soma dos ângulos deve ser menor que 180°!")
                     else:
                         st.success(f"### 🎯 3º Ângulo: **{res_angulo}°**")
-                        
                         with st.expander("📝 Passo a Passo", expanded=True):
-                            st.write(f"1. Soma dos ângulos conhecidos: `{ang1}° + {ang2}° = {soma}°`")
-                            st.write(f"2. Subtraindo do total (180°): `180° - {soma}° = {res_angulo}°`")
+                            st.write("1. A soma dos ângulos internos de qualquer triângulo é **180°**.")
+                            st.write(f"2. Somando os ângulos conhecidos: `{ang1}° + {ang2}° = {soma}°`")
+                            st.write(f"3. Subtraindo do total: `180° - {soma}° = {res_angulo}°`")
                 else:
                     st.error("❌ Digite 2 ângulos (ex: 'angulo 60 50').")
 
-            # 6. EQUAÇÕES, RAÍZES E EXPRESSÕES GERAIS
+            # 6. OPERAÇÕES GERAIS (FRAÇÕES, RAÍZES, SOMA, MULTIPLICAÇÃO, DIVISÃO, EQUAÇÕES)
             else:
                 digitou_fracao = "|" in entrada
                 entrada_formatada = entrada
@@ -188,24 +189,18 @@ if botao:
                     if len(partes) == 2:
                         entrada_formatada = f"({partes[0].strip()}) - ({partes[1].strip()})"
 
-                # Tratamento de Raiz Quadrada e Operações Especiais
+                # Ajustes de símbolos
+                entrada_formatada = entrada_formatada.replace("x", "*").replace("X", "*")
                 entrada_formatada = entrada_formatada.replace("raiz de", "sqrt").replace("raiz", "sqrt").replace("√", "sqrt")
                 entrada_formatada = re.sub(r"sqrt\s*\((.*?)\)", r"sqrt(\1)", entrada_formatada)
                 entrada_formatada = re.sub(r"sqrt\s*(\d+|\w+)", r"sqrt(\1)", entrada_formatada)
 
-                # Formatação de números e símbolos
-                entrada_formatada = entrada_formatada.replace(".", "*")
                 entrada_formatada = re.sub(r"(\d+),(\d+)", r"(\1\2/10**len('\2'))", entrada_formatada)
                 entrada_formatada = re.sub(r"(\d+)([a-z])", r"\1*\2", entrada_formatada)
                 entrada_formatada = re.sub(r"(\d+)\(", r"\1*(", entrada_formatada)
                 entrada_formatada = entrada_formatada.replace("|", "/").replace("÷", "/").replace(":", "/").replace("^", "**")
 
-                funcoes_locais = {
-                    "sqrt": sp.sqrt,
-                    "factorial": sp.factorial,
-                    "sp": sp
-                }
-                
+                funcoes_locais = {"sqrt": sp.sqrt, "factorial": sp.factorial, "sp": sp}
                 expr = sp.sympify(entrada_formatada, locals=funcoes_locais)
 
                 if expr.free_symbols:
@@ -214,24 +209,28 @@ if botao:
                     solucoes = sp.solve(expr, var_alvo)
                     
                     st.success(f"### 🎯 Solução: {var_alvo} = **{solucoes}**")
-                    
-                    with st.expander("📝 Passo a Passo", expanded=True):
-                        st.write("1. Organizando a expressão:")
+                    with st.expander("📝 Passo a Passo da Equação", expanded=True):
+                        st.write("1. **Igualando a expressão a zero:**")
                         st.latex(f"{sp.latex(expr)} = 0")
-                        st.write("2. Isolando a variável:")
+                        st.write("2. **Isolando a variável:**")
                         st.latex(f"{var_alvo} = {sp.latex(solucoes)}")
                 else:
+                    res_float = float(expr.evalf())
+                    res_formatado = int(res_float) if res_float.is_integer() else round(res_float, 4)
+                    
                     if digitou_fracao and isinstance(expr, (sp.Rational, sp.Integer)):
                         fracao_estilo = str(expr).replace("/", "|")
-                        st.success(f"### 🎯 Resultado (Fração): **{fracao_estilo}**")
+                        st.success(f"### 🎯 Resultado em Fração: **{fracao_estilo}**")
                     else:
-                        res_float = float(expr.evalf())
-                        res_formatado = int(res_float) if res_float.is_integer() else round(res_float, 4)
                         st.success(f"### 🎯 Resultado: **{str(res_formatado).replace('.', ',')}**")
 
-                        with st.expander("📝 Ver Expressão Formatada", expanded=False):
-                            st.write("Expressão interpretada:")
-                            st.latex(sp.latex(expr))
+                    # Passo a Passo para expressões aritméticas
+                    with st.expander("📝 Passo a Passo do Cálculo", expanded=True):
+                        st.write("1. **Expressão interpretada:**")
+                        st.latex(sp.latex(expr))
+                        st.write("2. **Resultado simplificado/exato:**")
+                        st.latex(fr"= {sp.latex(expr)}")
+                        st.write(f"3. **Valor numérico final:** **{res_formatado}**")
 
         except Exception:
-            st.error("❌ Expressão não reconhecida. Verifique a sintaxe ou consulte o Guia na barra lateral.")
+            st.error("❌ Expressão não reconhecida. Verifique a sintaxe ou consulte o Manual na barra lateral.")
