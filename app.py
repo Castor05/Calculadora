@@ -56,10 +56,12 @@ st.sidebar.markdown("""
 | **Subtração de Fração** | `5\|9 - 2\|5` | Subtração usando fração em pé |
 | **Multiplicação Fração** | `3\|4 * 2\|5` | Multiplica frações |
 | **Divisão de Fração** | `3\|4 / 2\|5` | Divide frações |
-| **Potência** | `5**6` ou `5^6` | **5** elevado à **potência de 6** (uso de `**`) |
+| **Multiplicação com Ponto** | `3.4` ou `6*7` | O ponto `.` realiza a multiplicação (3 x 4) |
+| **Número Decimal** | `2,3333` | Usa vírgula `,` para casas decimais |
+| **Potência** | `5**6` ou `5^6` | **5** elevado à **potência de 6** |
 | **Fatorial Simples** | `5!` | `5 * 4 * 3 * 2 * 1` |
-| **Fatorial Duplo** | `5!!` | `5 * 3 * 1` (passos de 2 em 2) |
-| **Fatorial Triplo** | `6!!!` | `6 * 3` (passos de 3 em 3) |
+| **Fatorial Duplo** | `5!!` | `5 * 3 * 1` |
+| **Fatorial Triplo** | `6!!!` | `6 * 3` |
 | **Raiz Quadrada** | `raiz de 49` ou `√81` | Cálculo de raiz |
 | **Regra de 3** | `r3 3 15 8` | Regra de três simples |
 | **Ângulos** | `angulo 60 50` | Descobre o 3º ângulo do triângulo |
@@ -70,7 +72,7 @@ st.sidebar.markdown("""
 """)
 
 st.sidebar.divider()
-st.sidebar.info("💡 **Dica de Potência:** Escrever `5**6` significa **5 elevado à potência de 6**.")
+st.sidebar.info("💡 **Dicas de Sintaxe:**\n- Use **vírgula (,)** para decimais: `2,5 + 1,2`\n- Use **ponto (.)** para multiplicar: `3.4` (3x4)")
 
 # Cabeçalho
 col_logo, col_titulo = st.columns([1, 5])
@@ -85,7 +87,7 @@ st.divider()
 # Entrada do usuário
 entrada = st.text_input(
     "Digite sua conta ou comando:",
-    placeholder="Ex: 3|4 + 6|8   |   5|9 - 2|5   |   5**6   |   5!"
+    placeholder="Ex: 3|4 + 6|8   |   2,5 + 3,3333   |   3.4   |   5!"
 ).strip().lower()
 
 btn_col1, btn_col2, btn_col3 = st.columns([1, 2, 1])
@@ -120,7 +122,7 @@ if botao:
             # 2. REGRA DE TRÊS
             elif entrada.startswith(("regra3", "regra de 3", "r3")):
                 texto_limpo = re.sub(r"^(regra\s*de\s*3|regra3|r3)", "", entrada).strip()
-                numeros = re.findall(r"-?\d+(?:[\.,]\d+)?", texto_limpo)
+                numeros = re.findall(r"-?\d+(?:,\d+)?", texto_limpo)
                 
                 if len(numeros) == 3:
                     a, b, c = [float(num.replace(",", ".")) for num in numeros]
@@ -132,12 +134,12 @@ if botao:
                         
                         with st.expander("📝 Passo a Passo da Resolução", expanded=True):
                             st.write("1. **Armando a Proporção:**")
-                            st.latex(fr"\frac{{{a}}}{{{b}}} = \frac{{{c}}}{{x}}")
+                            st.latex(fr"\frac{{{str(a).replace('.', ',')}}}{{{str(b).replace('.', ',')}}} = \frac{{{str(c).replace('.', ',')}}}{{x}}")
                             st.write("2. **Multiplicação Cruzada:**")
-                            st.latex(fr"{a} \cdot x = {b} \cdot {c}")
-                            st.latex(fr"{a} \cdot x = {b*c}")
+                            st.latex(fr"{str(a).replace('.', ',')} \cdot x = {str(b).replace('.', ',')} \cdot {str(c).replace('.', ',')}")
+                            st.latex(fr"{str(a).replace('.', ',')} \cdot x = {str(b*c).replace('.', ',')}")
                             st.write("3. **Isolando X:**")
-                            st.latex(fr"x = \frac{{{b*c}}}{{{a}}} = {x_str}")
+                            st.latex(fr"x = {x_str}")
                     else:
                         st.error("❌ O primeiro valor não pode ser zero!")
                 else:
@@ -151,10 +153,10 @@ if botao:
                     pontos = {i + 1: val for i, val in enumerate(valores)}
                     lei_encontrada = sp.simplify(sp.interpolate(pontos, n))
                     
-                    st.success(f"### 🎯 Lei de Formação Encontrada: A_n = **{lei_encontrada}**")
+                    st.success(f"### 🎯 Lei de Formação Encontrada: A_n = **{str(lei_encontrada).replace('.', ',')}**")
                     with st.expander("📝 Passo a Passo", expanded=True):
                         st.write("1. **Termos fornecidos na sequência:**")
-                        st.code(f"{valores}")
+                        st.code(f"{[str(v).replace('.', ',') for v in valores]}")
                         st.write("2. **Fórmula geral obtida:**")
                         st.latex(fr"A_n = {sp.latex(lei_encontrada)}")
                 else:
@@ -165,15 +167,16 @@ if botao:
                 expressao_lei = entrada.split("=")[1].strip()
                 expressao_lei = re.sub(r"n(\d+)", r"n*\1", expressao_lei)
                 expressao_lei = re.sub(r"(\d+)n", r"\1*n", expressao_lei)
-                expressao_lei = expressao_lei.replace("^", "**")
+                expressao_lei = expressao_lei.replace("^", "**").replace(".", "*").replace(",", ".")
                 expr_seq = sp.sympify(expressao_lei, locals={"n": n})
                 
                 termos = [expr_seq.subs(n, i) for i in range(1, 6)]
                 
-                st.success(f"### 🎯 Lei de Formação: A_n = **{expr_seq}**")
+                st.success(f"### 🎯 Lei de Formação: A_n = **{str(expr_seq).replace('.', ',')}**")
                 with st.expander("📝 Passo a Passo (Primeiros 5 Termos)", expanded=True):
                     for idx, val in enumerate(termos, 1):
-                        st.write(f"* Para `n = {idx}` ➔ `A_{idx} = {val}`")
+                        val_str = str(val).replace(".", ",")
+                        st.write(f"* Para `n = {idx}` ➔ `A_{idx} = {val_str}`")
 
             # 5. MMC E MDC
             elif entrada.startswith(("mmc", "mdc")):
@@ -208,7 +211,7 @@ if botao:
                 else:
                     st.error("❌ Digite 2 ângulos (ex: 'angulo 60 50').")
 
-            # 7. OPERAÇÕES COM FRAÇÃO EM PÉ (|), POTÊNCIAS (**), RAÍZES E EQUAÇÕES
+            # 7. OPERAÇÕES GERAIS (FRAÇÕES, DECIMAIS COM VÍRGULA, MULTIPLICAÇÃO COM PONTO)
             else:
                 usou_barra_em_pe = "|" in entrada
                 usou_potencia_exp = "**" in entrada or "^" in entrada
@@ -219,13 +222,15 @@ if botao:
                     if len(partes) == 2:
                         entrada_formatada = f"({partes[0].strip()}) - ({partes[1].strip()})"
 
-                # Trata a entrada do usuário
+                # Ajuste para PONTO (.) virar multiplicação (*) e VÍRGULA (,) virar ponto decimal do Python
                 entrada_formatada = entrada_formatada.replace("x", "*").replace("X", "*")
+                entrada_formatada = entrada_formatada.replace(".", "*")
+                entrada_formatada = entrada_formatada.replace(",", ".")
+
                 entrada_formatada = entrada_formatada.replace("raiz de", "sqrt").replace("raiz", "sqrt").replace("√", "sqrt")
                 entrada_formatada = re.sub(r"sqrt\s*\((.*?)\)", r"sqrt(\1)", entrada_formatada)
                 entrada_formatada = re.sub(r"sqrt\s*(\d+|\w+)", r"sqrt(\1)", entrada_formatada)
 
-                entrada_formatada = re.sub(r"(\d+),(\d+)", r"(\1\2/10**len('\2'))", entrada_formatada)
                 entrada_formatada = re.sub(r"(\d+)([a-z])", r"\1*\2", entrada_formatada)
                 entrada_formatada = re.sub(r"(\d+)\(", r"\1*(", entrada_formatada)
                 
@@ -249,35 +254,36 @@ if botao:
                 else:
                     res_float = float(expr.evalf())
                     res_formatado = int(res_float) if res_float.is_integer() else round(res_float, 4)
+                    res_com_virgula = str(res_formatado).replace(".", ",")
 
                     # Exibição do Resultado
                     if usou_barra_em_pe and isinstance(expr, (sp.Rational, sp.Integer)):
                         frac_str = f"{expr.p}|{expr.q}" if hasattr(expr, "q") and expr.q != 1 else str(expr)
                         st.success(f"### 🎯 Resultado em Fração: **{frac_str}**")
                     else:
-                        st.success(f"### 🎯 Resultado: **{str(res_formatado).replace('.', ',')}**")
+                        st.success(f"### 🎯 Resultado: **{res_com_virgula}**")
 
                     # Passo a Passo
                     with st.expander("📝 Passo a Passo do Cálculo", expanded=True):
                         if usou_potencia_exp and not usou_barra_em_pe:
                             st.write("1. **Cálculo de Potência:** O operador `**` eleva a base ao expoente indicado.")
-                            st.latex(f"{sp.latex(sp.sympify(entrada_formatada, evaluate=False))} = {res_formatado}")
+                            st.latex(f"{sp.latex(sp.sympify(entrada_formatada, evaluate=False))} = {res_com_virgula}")
                         
                         elif usou_barra_em_pe:
-                            frac_exibição = entrada.replace(" ", "").replace("*", " * ").replace("/", " / ").replace("+", " + ").replace("-", " - ")
-                            st.write(f"1. **Operação de Fração armada:** `{frac_exibição}`")
+                            frac_exibicao = entrada.replace(" ", "").replace("*", " * ").replace("/", " / ").replace("+", " + ").replace("-", " - ")
+                            st.write(f"1. **Operação de Fração armada:** `{frac_exibicao}`")
                             st.write("2. **Resultado Simplificado (Fração com barra em pé):**")
                             if hasattr(expr, "q") and expr.q != 1:
                                 st.code(f"{expr.p}|{expr.q}")
                             else:
                                 st.code(f"{expr}")
-                            st.write(f"3. **Valor Decimal:** `{res_formatado}`")
+                            st.write(f"3. **Valor Decimal:** `{res_com_virgula}`")
                         
                         else:
                             st.write("1. **Expressão Armada:**")
                             st.latex(sp.latex(sp.sympify(entrada_formatada, evaluate=False)))
                             st.write("2. **Resultado Final:**")
-                            st.latex(f"= {res_formatado}")
+                            st.latex(f"= {res_com_virgula}")
 
         except Exception:
             st.error("❌ Expressão não reconhecida. Verifique a sintaxe ou consulte o Manual na barra lateral.")
