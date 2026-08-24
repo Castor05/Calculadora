@@ -9,10 +9,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# Estilização CSS personalizada para um design moderno
+# Estilização CSS personalizada
 st.markdown("""
     <style>
-    /* Estilo do botão principal */
     div.stButton > button:first-child {
         background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
         color: white;
@@ -28,16 +27,8 @@ st.markdown("""
         background: linear-gradient(90deg, #45a049 0%, #3d8b40 100%);
         transform: translateY(-2px);
     }
-    /* Estilização da sidebar */
     section[data-testid="stSidebar"] {
         background-color: #1a1c23;
-    }
-    /* Ajuste de fontes e cards */
-    .metric-card {
-        background-color: #262730;
-        padding: 15px;
-        border-radius: 10px;
-        border-left: 5px solid #4CAF50;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -45,13 +36,14 @@ st.markdown("""
 # Inicializa os símbolos matemáticos do SymPy
 x, y, z, n = sp.symbols("x y z n")
 
-# Menu Lateral (Sidebar) Organizadinho em Tabela
+# Menu Lateral (Sidebar)
 st.sidebar.header("📖 Guia de Comandos")
-st.sidebar.caption("Como digitar na calculadora:")
+st.sidebar.caption("Exemplos de como digitar:")
 
 st.sidebar.markdown("""
 | Operação | Exemplo |
 | :--- | :--- |
+| **Raiz Quadrada** | `raiz de 25` ou `√16` |
 | **Regra de 3** | `r3 3 15 8` |
 | **Ângulos** | `angulo 60 50` |
 | **Equação** | `2x = 18` |
@@ -59,12 +51,13 @@ st.sidebar.markdown("""
 | **Sequência** | `seq 2, 4, 6, 8` |
 | **Lei de Form.** | `an = 2n + 3` |
 | **MMC / MDC** | `mmc 12 18` |
+| **Fração** | `12|15 + 7|8` |
 """)
 
 st.sidebar.divider()
-st.sidebar.info("💡 **Dica:** Não precisa colocar ponto de multiplicação entre número e letra (ex: `2x` funciona direto!).")
+st.sidebar.info("💡 **Dica:** Você pode usar `raiz de 9`, `sqrt(9)` ou `√9` que a calculadora entende!")
 
-# Layout de Cabeçalho em Colunas
+# Cabeçalho
 col_logo, col_titulo = st.columns([1, 5])
 with col_logo:
     st.title("🧮")
@@ -77,7 +70,7 @@ st.divider()
 # Campo de Entrada
 entrada = st.text_input(
     "Digite sua conta ou comando:",
-    placeholder="Ex: r3 3 15 8   |   angulo 60 50   |   2x = 18"
+    placeholder="Ex: raiz de 144   |   r3 3 15 8   |   2x = 18"
 ).strip().lower()
 
 btn_col1, btn_col2, btn_col3 = st.columns([1, 2, 1])
@@ -185,22 +178,34 @@ if botao:
                 else:
                     st.error("❌ Digite 2 ângulos (ex: 'angulo 60 50').")
 
-            # 6. EQUAÇÕES E EXPRESSÕES GERAIS
+            # 6. EQUAÇÕES, RAÍZES E EXPRESSÕES GERAIS
             else:
+                digitou_fracao = "|" in entrada
                 entrada_formatada = entrada
+
                 if "=" in entrada_formatada:
                     partes = entrada_formatada.split("=")
                     if len(partes) == 2:
                         entrada_formatada = f"({partes[0].strip()}) - ({partes[1].strip()})"
 
+                # Tratamento de Raiz Quadrada e Operações Especiais
+                entrada_formatada = entrada_formatada.replace("raiz de", "sqrt").replace("raiz", "sqrt").replace("√", "sqrt")
+                entrada_formatada = re.sub(r"sqrt\s*\((.*?)\)", r"sqrt(\1)", entrada_formatada)
+                entrada_formatada = re.sub(r"sqrt\s*(\d+|\w+)", r"sqrt(\1)", entrada_formatada)
+
+                # Formatação de números e símbolos
                 entrada_formatada = entrada_formatada.replace(".", "*")
                 entrada_formatada = re.sub(r"(\d+),(\d+)", r"(\1\2/10**len('\2'))", entrada_formatada)
                 entrada_formatada = re.sub(r"(\d+)([a-z])", r"\1*\2", entrada_formatada)
                 entrada_formatada = re.sub(r"(\d+)\(", r"\1*(", entrada_formatada)
                 entrada_formatada = entrada_formatada.replace("|", "/").replace("÷", "/").replace(":", "/").replace("^", "**")
-                entrada_formatada = entrada_formatada.replace("raiz de", "sqrt").replace("raiz", "sqrt")
 
-                funcoes_locais = {"sqrt": sp.sqrt, "factorial": sp.factorial, "sp": sp}
+                funcoes_locais = {
+                    "sqrt": sp.sqrt,
+                    "factorial": sp.factorial,
+                    "sp": sp
+                }
+                
                 expr = sp.sympify(entrada_formatada, locals=funcoes_locais)
 
                 if expr.free_symbols:
@@ -216,9 +221,17 @@ if botao:
                         st.write("2. Isolando a variável:")
                         st.latex(f"{var_alvo} = {sp.latex(solucoes)}")
                 else:
-                    res_float = float(expr.evalf())
-                    res_formatado = int(res_float) if res_float.is_integer() else round(res_float, 4)
-                    st.success(f"### 🎯 Resultado: **{str(res_formatado).replace('.', ',')}**")
+                    if digitou_fracao and isinstance(expr, (sp.Rational, sp.Integer)):
+                        fracao_estilo = str(expr).replace("/", "|")
+                        st.success(f"### 🎯 Resultado (Fração): **{fracao_estilo}**")
+                    else:
+                        res_float = float(expr.evalf())
+                        res_formatado = int(res_float) if res_float.is_integer() else round(res_float, 4)
+                        st.success(f"### 🎯 Resultado: **{str(res_formatado).replace('.', ',')}**")
+
+                        with st.expander("📝 Ver Expressão Formatada", expanded=False):
+                            st.write("Expressão interpretada:")
+                            st.latex(sp.latex(expr))
 
         except Exception:
             st.error("❌ Expressão não reconhecida. Verifique a sintaxe ou consulte o Guia na barra lateral.")
