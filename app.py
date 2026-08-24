@@ -41,21 +41,21 @@ st.sidebar.header("📖 Manual Completo")
 st.sidebar.caption("Exemplos de sintaxe aceitos:")
 
 st.sidebar.markdown("""
-| Operação | Exemplo |
-| :--- | :--- |
-| **Soma** | `15 + 25` |
-| **Subtração** | `50 - 18` |
-| **Multiplicação** | `6 * 7` ou `6x7` |
-| **Divisão** | `100 / 4` ou `100 ÷ 4` |
-| **Fração** | `3|4 + 2|5` ou `12/15` |
-| **Potência** | `2^5` ou `x^2 - 4 = 0` |
-| **Raiz Quadrada** | `raiz de 49` ou `√81` |
-| **Regra de 3** | `r3 3 15 8` |
-| **Ângulos** | `angulo 60 50` |
-| **Equação** | `2x + 5 = 15` |
-| **Sequência** | `seq 2, 4, 6, 8` |
-| **Lei de Form.** | `an = 3n - 1` |
-| **MMC / MDC** | `mmc 12 18` |
+| Operação | Exemplo | Descrição |
+| :--- | :--- | :--- |
+| **Soma** | `15 + 25` | Soma simples |
+| **Subtração** | `50 - 18` | Subtração simples |
+| **Multiplicação** | `6 * 7` ou `6x7` | Multiplicação |
+| **Divisão** | `100 / 4` ou `100 ÷ 4` | Divisão |
+| **Fração** | `3|4 + 2|5` ou `12/15` | Operações com fração |
+| **Potência** | `2^5` ou `x^2 - 4 = 0` | Elevação de potência |
+| **Raiz Quadrada** | `raiz de 49` ou `√81` | Cálculo de raiz |
+| **Regra de 3** | `r3 3 15 8` | Regra de três simples |
+| **Ângulos** | `angulo 60 50` | Descobre o 3º ângulo do triângulo |
+| **Equação** | `2x + 5 = 15` | Resolve a variável X |
+| **Sequência** | `seq 2, 4, 6, 8` | **Descobre a Lei de Formação a partir dos números** |
+| **Lei de Form.** | `an = 3n - 1` | **Gera os 5 primeiros termos a partir da lei** |
+| **MMC / MDC** | `mmc 12 18` | Calcula o MMC ou MDC |
 """)
 
 st.sidebar.divider()
@@ -74,7 +74,7 @@ st.divider()
 # Entrada do usuário
 entrada = st.text_input(
     "Digite sua conta ou comando:",
-    placeholder="Ex: 3|4 + 2|5   |   raiz de 144   |   r3 3 15 8"
+    placeholder="Ex: seq 2, 4, 6, 8   |   3|4 + 2|5   |   raiz de 144"
 ).strip().lower()
 
 btn_col1, btn_col2, btn_col3 = st.columns([1, 2, 1])
@@ -114,7 +114,7 @@ if botao:
                 else:
                     st.error("❌ Digite 3 valores (ex: 'r3 3 15 8').")
 
-            # 2. SEQUÊNCIA / TERMOS
+            # 2. SEQUÊNCIA / DESCOBRIR LEI DE FORMAÇÃO
             elif entrada.startswith(("seq ", "sequencia ", "sequência ")):
                 numeros = re.findall(r"-?\d+(?:,\d+)?", entrada.replace("seq", "").replace("uência", "").replace("uencia", ""))
                 if len(numeros) >= 2:
@@ -122,16 +122,16 @@ if botao:
                     pontos = {i + 1: val for i, val in enumerate(valores)}
                     lei_encontrada = sp.simplify(sp.interpolate(pontos, n))
                     
-                    st.success(f"### 🎯 Lei de Formação: A_n = **{lei_encontrada}**")
+                    st.success(f"### 🎯 Lei de Formação Encontrada: A_n = **{lei_encontrada}**")
                     with st.expander("📝 Passo a Passo", expanded=True):
-                        st.write("1. **Termos fornecidos:**")
+                        st.write("1. **Termos fornecidos na sequência:**")
                         st.code(f"{valores}")
                         st.write("2. **Fórmula geral obtida por interpolação:**")
                         st.latex(fr"A_n = {sp.latex(lei_encontrada)}")
                 else:
                     st.error("❌ Informe pelo menos 2 termos!")
 
-            # 3. LEI DE FORMAÇÃO DIRETA
+            # 3. LEI DE FORMAÇÃO DIRETA (GERAR TERMOS)
             elif re.match(r"^a_?n\s*=", entrada):
                 expressao_lei = entrada.split("=")[1].strip()
                 expressao_lei = re.sub(r"n(\d+)", r"n*\1", expressao_lei)
