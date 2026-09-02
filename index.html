@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora Universal</title>
+    <style>
+        body { background-color: #0e1117; color: white; font-family: sans-serif; display: flex; justify-content: center; padding: 40px; }
+        .card { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 24px; max-width: 600px; width: 100%; }
+        h1 { color: #4ef081; font-size: 1.8rem; }
+        input { width: 70%; padding: 12px; background: #1a202c; border: 1px solid #2d3748; color: white; border-radius: 8px; }
+        button { padding: 12px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .res { margin-top: 20px; padding: 16px; background: #1a202c; border-radius: 8px; border: 1px solid #10b981; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧮 Calculadora Universal</h1>
+        <p>Digite sua conta:</p>
+        <input type="text" id="exp" placeholder="Ex: 3|4 + 6|8 ou r3 3 15 8">
+        <button onclick="calcular()">Calcular</button>
+        <div id="resultado" class="res" style="display:none;"></div>
+    </div>
+
+    <script>
+        async function calcular() {
+            const exp = document.getElementById('exp').value;
+            const resBox = document.getElementById('resultado');
+            
+            // Substitua pela URL final da sua API hospedada
+            const response = await fetch('http://127.0.0.1:8000/calcular', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ expressao: exp })
+            });
+            
+            const data = await response.json();
+            resBox.style.display = 'block';
+            if(data.erro) {
+                resBox.innerHTML = `<span style="color:red">${data.erro}</span>`;
+            } else {
+                resBox.innerHTML = `<h3>Resultado: ${data.resultado}</h3><p>${data.passos.join('<br>')}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
