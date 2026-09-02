@@ -3,172 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Universal</title>
+    <title>Calculadora Acadêmica</title>
+    <!-- MathJax para renderização de símbolos matemáticos bonitos -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
+        :root {
+            --bg-color: #f7f9fa;
+            --card-bg: #ffffff;
+            --primary: #d93856;
+            --primary-hover: #b82b45;
+            --border-color: #e2e8f0;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --highlight-bg: #f0f9ff;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
+
         body {
-            background-color: #0e1117;
-            color: #e2e8f0;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            padding: 40px 20px;
             display: flex;
             justify-content: center;
-            padding: 20px;
         }
-        .container {
-            max-width: 800px;
+
+        .app-container {
+            max-width: 750px;
             width: 100%;
         }
-        .hero-card {
-            background: linear-gradient(135deg, #1e2638 0%, #111827 100%);
-            border: 1px solid #2d3748;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
+
+        .header-bar {
             display: flex;
             align-items: center;
-            gap: 16px;
-        }
-        .hero-icon {
-            font-size: 2.5rem;
-            background: #10b98120;
-            padding: 12px;
-            border-radius: 14px;
-            border: 1px solid #10b98140;
-        }
-        .hero-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #4ef081 0%, #38bdf8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .hero-subtitle {
-            color: #94a3b8;
-            font-size: 0.95rem;
-            margin-top: 4px;
-        }
-        .input-group {
-            display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
         }
-        input[type="text"] {
+
+        .search-box-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 8px 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            margin-bottom: 16px;
+        }
+
+        .search-input {
             flex: 1;
-            padding: 12px 16px;
-            background-color: #1a202c;
-            border: 1px solid #2d3748;
-            border-radius: 10px;
-            color: #fff;
-            font-size: 1rem;
+            border: none;
             outline: none;
+            font-size: 1.2rem;
+            color: var(--text-dark);
+            background: transparent;
         }
-        input[type="text"]:focus {
-            border-color: #4ef081;
-        }
-        button {
-            padding: 12px 24px;
-            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+
+        .btn-submit {
+            background-color: var(--primary);
             color: white;
             border: none;
-            border-radius: 10px;
+            padding: 10px 24px;
+            border-radius: 6px;
             font-weight: 600;
             font-size: 1rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background-color 0.2s;
         }
-        button:hover {
-            background: linear-gradient(90deg, #059669 0%, #047857 100%);
-            transform: translateY(-1px);
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
         }
-        .shortcuts {
+
+        .quick-actions {
             display: flex;
             gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
-        .chip {
-            background: #1a202c;
-            border: 1px solid #2d3748;
-            color: #94a3b8;
-            padding: 6px 12px;
+
+        .btn-tab {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             cursor: pointer;
         }
-        .chip:hover {
-            border-color: #4ef081;
-            color: #fff;
+
+        .btn-tab:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
         }
-        .result-card {
-            background: #1a202c;
-            border: 1px solid #10b981;
-            border-radius: 12px;
-            padding: 20px;
+
+        .solution-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
             display: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
-        .result-title {
-            color: #4ef081;
-            font-size: 1.3rem;
-            margin-bottom: 10px;
+
+        .solution-title {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
         }
-        .step {
-            margin-top: 8px;
-            color: #cbd5e1;
-            font-size: 0.95rem;
+
+        .solution-main {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: var(--text-dark);
+        }
+
+        .steps-container {
+            border-top: 1px dashed var(--border-color);
+            padding-top: 16px;
+        }
+
+        .step-item {
+            background: var(--highlight-bg);
+            border-left: 3px solid #0284c7;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 1rem;
+        }
+
+        .step-label {
+            color: #0369a1;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="hero-card">
-        <div class="hero-icon">🧮</div>
-        <div>
-            <div class="hero-title">Calculadora Universal</div>
-            <div class="hero-subtitle">Resolução inteligente de expressões, frações e equações.</div>
-        </div>
+<div class="app-container">
+    <div class="header-bar">
+        <span>Soluções</span> &gt; <strong id="current-eq">x^2 - x - 6 = 0</strong>
     </div>
 
-    <div class="shortcuts">
-        <span class="chip" onclick="setQuery('3|4 + 6|8')">3|4 + 6|8</span>
-        <span class="chip" onclick="setQuery('5|9 - 2|5')">5|9 - 2|5</span>
-        <span class="chip" onclick="setQuery('5**6')">5**6</span>
-        <span class="chip" onclick="setQuery('5!')">5!</span>
-        <span class="chip" onclick="setQuery('r3 3 15 8')">r3 3 15 8</span>
+    <div class="search-box-card">
+        <input type="text" id="calcInput" class="search-input" value="x^2 - x - 6 = 0" placeholder="Digite uma equação ou expressão...">
+        <button class="btn-submit" onclick="calcular()">Ir</button>
     </div>
 
-    <div class="input-group">
-        <input type="text" id="calcInput" placeholder="Ex: 3|4 + 6|8 ou r3 3 15 8">
-        <button onclick="calcular()">🚀 Calcular</button>
+    <div class="quick-actions">
+        <button class="btn-tab" onclick="setEq('x^2 - x - 6 = 0')">Passos</button>
+        <button class="btn-tab" onclick="setEq('3/4 + 6/8')">Frações</button>
+        <button class="btn-tab" onclick="setEq('2x + 5 = 15')">Álgebra</button>
     </div>
 
-    <div id="resultBox" class="result-card">
-        <div id="resultText" class="result-title"></div>
-        <div id="stepsText"></div>
+    <div id="solutionCard" class="solution-card">
+        <div class="solution-title">Solução</div>
+        <div id="finalResult" class="solution-main"></div>
+        
+        <div class="steps-container" id="stepsContainer"></div>
     </div>
 </div>
 
 <script>
-    function setQuery(val) {
+    function setEq(val) {
         document.getElementById('calcInput').value = val;
         calcular();
     }
 
     async function calcular() {
         const input = document.getElementById('calcInput').value.trim();
-        const resultBox = document.getElementById('resultBox');
-        const resultText = document.getElementById('resultText');
-        const stepsText = document.getElementById('stepsText');
+        const card = document.getElementById('solutionCard');
+        const finalResult = document.getElementById('finalResult');
+        const stepsContainer = document.getElementById('stepsContainer');
+        const currentEq = document.getElementById('current-eq');
 
         if (!input) return;
 
-        resultBox.style.display = 'block';
-        resultText.innerText = "⏳ Calculando...";
-        stepsText.innerHTML = "";
+        currentEq.innerText = input;
+        card.style.display = 'block';
+        finalResult.innerHTML = "Calculando...";
+        stepsContainer.innerHTML = "";
 
         try {
             const response = await fetch('https://calculadora-universal.onrender.com/calcular', {
@@ -180,15 +205,26 @@
             const data = await response.json();
 
             if (data.erro) {
-                resultText.innerText = "❌ Erro";
-                stepsText.innerHTML = `<div class="step">${data.erro}</div>`;
+                finalResult.innerHTML = `<span style="color: var(--primary);">Erro na expressão</span>`;
+                stepsContainer.innerHTML = `<div class="step-item" style="border-color: var(--primary); background: #fff1f2;"><div class="step-label" style="color: var(--primary);">Detalhes</div>${data.erro}</div>`;
             } else {
-                resultText.innerText = `🎯 Resultado: ${data.resultado}`;
-                stepsText.innerHTML = data.passos.map(p => `<div class="step">• ${p}</div>`).join('');
+                finalResult.innerHTML = `\\[${data.resultado}\\]`;
+                
+                stepsContainer.innerHTML = data.passos.map((p, idx) => `
+                    <div class="step-item">
+                        <div class="step-label">Etapa ${idx + 1}</div>
+                        \\[${p}\\]
+                    </div>
+                `).join('');
+
+                // Renderiza as fórmulas em LaTeX elegante se a biblioteca MathJax estiver pronta
+                if (window.MathJax) {
+                    MathJax.typesetPromise();
+                }
             }
         } catch (e) {
-            resultText.innerText = "❌ Erro de Conexão";
-            stepsText.innerHTML = "<div class='step'>Não foi possível se conectar ao servidor do Render. Aguarde alguns segundos se ele estiver iniciando.</div>";
+            finalResult.innerHTML = `<span style="color: var(--primary);">Falha de Conexão</span>`;
+            stepsContainer.innerHTML = `<div class="step-item">O servidor backend do Render ainda está iniciando. Aguarde uns 10 segundos e tente novamente.</div>`;
         }
     }
 </script>
