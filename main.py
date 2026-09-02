@@ -5,7 +5,6 @@ import sympy as sp
 
 app = FastAPI()
 
-# Permite que o frontend da Vercel faça requisições para o Render
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,75 +21,68 @@ def calcular(data: CalculoRequest):
     try:
         raw_expr = data.expressao.strip().replace("^", "**")
         
-        # 1. Verifica se é uma EQUAÇÃO (ex: x^2 - x - 6 = 0)
+        # 1. TRATAMENTO PARA EQUAÇÃO DO 2º GRAU / LINEAR
         if "=" in raw_expr:
             partes = raw_expr.split("=")
             lhs = sp.sympify(partes[0])
             rhs = sp.sympify(partes[1])
-            eq = sp.Eq(lhs, rhs)
+            eq_obj = lhs - rhs
             
-            # Descobre a variável (ex: x)
-            variaveis = list(eq.free_symbols)
-            if not variaveis:
-                return {"erro": "Nenhuma variável encontrada na equação."}
+            x = sp.Symbol('x')
             
-            var = variaveis[0]
-            solucoes = sp.solve(eq, var)
+            # Se for uma equação quadrática (2º grau) do tipo ax^2 + bx + c = 0
+            poly = sp.Poly(eq_obj, x)
+            grau = poly.degree()
             
-            # Formata os passos e resultados em LaTeX
-            passos = [
-                f"Equação original: {sp.latex(eq)}",
-                f"Isolando e resolvendo para {sp.latex(var)}"
-            ]
+            if grau == 2:
+                coeffs = poly.all_coeffs()
+                a, b, c = coeffs[0], coeffs[1], coeffs[2]
+                
+                delta = b**2 - 4*a*c
+                x1 = (-b + sp.sqrt(delta)) / (2*a)
+                x2 = (-b - sp.sqrt(delta)) / (2*a)
+                
+                passos = [
+                    f"\\text{{1. Identificar os coeficientes: }} a = {a}, b = {b}, c = {c}",
+                    f"\\text{{2. Calcular o Delta (}}\\Delta\\text{{): }} \\Delta = {b}^2 - 4 \\cdot ({a}) \\cdot ({c}) = {delta}",
+                    f"\\text{{3. Aplicar Bhaskara: }} x = \\frac{{-({b}) \\pm \\sqrt{{{delta}}}}}{{2 \\cdot {a}}}",
+                    f"\\text{{4. Primeira raiz (}}x_1\\text{{): }} x_1 = \\frac{{{-b} + {sp.sqrt(delta)}}}{{{2*a}}} = {sp.latex(sp.simplify(x1))}",
+                    f"\\text{{5. Segunda raiz (}}x_2\\text{{): }} x_2 = \\frac{{{-b} - {sp.sqrt(delta)}}}{{{2*a}}} = {sp.latex(sp.simplify(x2))}"
+                ]
+                
+                resultado = f"x_1 = {sp.latex(sp.simplify(x1))}, \\quad x_2 = {sp.latex(sp.simplify(x2))}"
+                return {"resultado": resultado, "passos": passos}
             
-            res_latex = f"{sp.latex(var)} = " + ", ".join([sp.latex(s) for s in solucoes])
-            
-            return {
-                "resultado": res_latex,
-                "passos": passos
-            }
+            else:
+                # Outros tipos de equações
+                solucoes = sp.solve(eq_obj, x)
+                passos = [
+                    f"\\text{{1. Equação organizada: }} {sp.latex(eq_obj)} = 0",
+                    f"\\text{{2. Isolando }} x \\text{{: }} x = {', '.join([sp.latex(s) for s in solucoes])}"
+                ]
+                return {"resultado": f"x = {', '.join([sp.latex(s) for s in solucoes])}", "passos": passos}
 
-        # 2. Se for uma EXPRESSÃO ÁLGEBRICA OU NUMÉRICA (ex: (x^2 - 1)/(x + 1) ou 3/4 + 6/8)
+        # 2. EXPRESSÕES ÁLGEBRICAS E NUMÉRICAS
         else:
             expr = sp.sympify(raw_expr, evaluate=False)
             
-            # Se não tem variáveis (apenas números)
             if len(expr.free_symbols) == 0:
-                resultado_exato = sp.sympify(raw_expr)
+                res = sp.sympify(raw_expr)
                 passos = [
-                    f"Expressão: {sp.latex(expr)}",
-                    f"Simplificação: {sp.latex(resultado_exato)}"
+                    f"\\text{{1. Expressão original: }} {sp.latex(expr)}",
+                    f"\\text{{2. Resultado exato: }} {sp.latex(res)}"
                 ]
-                
-                # Se for fração, mostra também o decimal
-                if resultado_exato.is_Rational and not resultado_exato.is_Integer:
-                    val_decimal = float(resultado_exato)
-                    return {
-                        "resultado": f"{sp.latex(resultado_exato)} \\approx {val_decimal:.4f}",
-                        "passos": passos
-                    }
-                
-                return {
-                    "resultado": sp.latex(resultado_exato),
-                    "passos": passos
-                }
-            
-            # Se tem variáveis (álgebra), fatora/simplifica
+                return {"resultado": sp.latex(res), "passos": passos}
             else:
-                expr_fatorada = sp.factor(expr)
-                expr_simplificada = sp.simplify(expr)
+                fatorado = sp.factor(expr)
+                simplificado = sp.simplify(expr)
                 
-                passos = [f"Expressão original: {sp.latex(expr)}"]
-                
-                if expr_fatorada != expr:
-                    passos.append(f"Fatoração do polinômio: {sp.latex(expr_fatorada)}")
-                
-                passos.append(f"Forma simplificada final: {sp.latex(expr_simplificada)}")
-                
-                return {
-                    "resultado": sp.latex(expr_simplificada),
-                    "passos": passos
-                }
+                passos = [
+                    f"\\text{{1. Expressão dada: }} {sp.latex(expr)}",
+                    f"\\text{{2. Fatoração: }} {sp.latex(fatorado)}",
+                    f"\\text{{3. Forma simplificada: }} {sp.latex(simplificado)}"
+                ]
+                return {"resultado": sp.latex(simplificado), "passos": passos}
 
     except Exception as e:
-        return {"erro": f"Sintaxe inválida ou erro no cálculo: {str(e)}"}
+        return {"erro": f"Erro ao processar cálculo: {str(e)}"}
