@@ -6,6 +6,7 @@
     <title>CoreMath Engine</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
     <style>
         :root {
             --bg-main: #0f172a;
@@ -15,163 +16,37 @@
             --border: #334155;
             --text-main: #f8fafc;
             --text-sub: #94a3b8;
-            --success: #10b981;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; padding: 30px 15px; }
+        .container { max-width: 850px; width: 100%; }
+        
+        .brand { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .brand-title { font-size: 1.25rem; font-weight: 700; }
+        .brand-badge { font-size: 0.75rem; background: #312e81; color: #a5b4fc; padding: 4px 8px; border-radius: 4px; border: 1px solid #4338ca; }
 
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            padding: 40px 20px;
-        }
+        .input-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+        .input-wrapper { display: flex; gap: 10px; margin-bottom: 12px; }
+        input[type="text"] { flex: 1; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text-main); font-size: 1.1rem; outline: none; }
+        button.btn-run { background: var(--accent); color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
 
-        .container {
-            max-width: 800px;
-            width: 100%;
-        }
+        /* Teclado Matemático */
+        .math-keyboard { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .key-btn { background: #0f172a; border: 1px solid var(--border); color: var(--accent); padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+        .key-btn:hover { background: var(--border); }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-        }
+        .presets { display: flex; gap: 8px; flex-wrap: wrap; }
+        .preset-btn { background: transparent; border: 1px solid var(--border); color: var(--text-sub); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
 
-        .brand-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.025em;
-            color: var(--text-main);
-        }
+        .output-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; display: none; }
+        .output-header { font-size: 0.8rem; text-transform: uppercase; color: var(--text-sub); margin: 16px 0 8px 0; }
+        .result-box { font-size: 1.4rem; padding: 16px; background: #0f172a; border-radius: 8px; border-left: 4px solid var(--accent); overflow-x: auto; }
 
-        .brand-badge {
-            font-size: 0.75rem;
-            background: #312e81;
-            color: #a5b4fc;
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid #4338ca;
-        }
-
-        .input-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-
-        .input-wrapper {
-            display: flex;
-            gap: 12px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            background: #0f172a;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: var(--text-main);
-            font-size: 1.1rem;
-            outline: none;
-        }
-
-        input[type="text"]:focus {
-            border-color: var(--accent);
-        }
-
-        button.btn-run {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 0 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        button.btn-run:hover {
-            background: var(--accent-hover);
-        }
-
-        .presets {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
-
-        .preset-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-sub);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            cursor: pointer;
-        }
-
-        .preset-btn:hover {
-            color: var(--text-main);
-            border-color: var(--text-sub);
-        }
-
-        .output-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            display: none;
-        }
-
-        .output-header {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-sub);
-            margin-bottom: 12px;
-        }
-
-        .result-box {
-            font-size: 1.5rem;
-            padding: 16px;
-            background: #0f172a;
-            border-radius: 8px;
-            border-left: 4px solid var(--accent);
-            margin-bottom: 20px;
-            overflow-x: auto;
-        }
-
-        .steps-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .step-card {
-            background: #0f172a;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 12px 16px;
-        }
-
-        .step-num {
-            font-size: 0.75rem;
-            color: var(--accent);
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
+        .step-card { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+        .step-num { font-size: 0.75rem; color: var(--accent); font-weight: 700; margin-bottom: 4px; }
+        
+        #plotContainer { background: #0f172a; border-radius: 8px; border: 1px solid var(--border); margin-top: 8px; height: 300px; }
     </style>
 </head>
 <body>
@@ -184,26 +59,48 @@
 
     <div class="input-panel">
         <div class="input-wrapper">
-            <input type="text" id="calcInput" placeholder="Ex: x^2 - x - 6 = 0 ou (x^2 - 1)/(x + 1)">
+            <input type="text" id="calcInput" placeholder="Digite uma equação, derivada diff(x^2) ou integral int(x^2)...">
             <button class="btn-run" onclick="calcular()">Resolver</button>
         </div>
+
+        <!-- Teclado Matemático -->
+        <div class="math-keyboard">
+            <button class="key-btn" onclick="insertSymbol('^2')">x²</button>
+            <button class="key-btn" onclick="insertSymbol('^')">xⁿ</button>
+            <button class="key-btn" onclick="insertSymbol('sqrt(')">√x</button>
+            <button class="key-btn" onclick="insertSymbol('diff(')">d/dx</button>
+            <button class="key-btn" onclick="insertSymbol('int(')">∫ dx</button>
+            <button class="key-btn" onclick="insertSymbol(' / ')">a/b</button>
+        </div>
+
         <div class="presets">
-            <button class="preset-btn" onclick="setEq('x^2 - x - 6 = 0')">Equação Quadrática</button>
-            <button class="preset-btn" onclick="setEq('(x^2 - 1)/(x + 1)')">Simplificação Álgebra</button>
-            <button class="preset-btn" onclick="setEq('3/4 + 6/8')">Operação Fracionária</button>
+            <button class="preset-btn" onclick="setEq('x^2 - 4 = 0')">Equação</button>
+            <button class="preset-btn" onclick="setEq('diff(x^3 - 2*x)')">Derivada</button>
+            <button class="preset-btn" onclick="setEq('int(x^2)')">Integral</button>
         </div>
     </div>
 
     <div id="outputPanel" class="output-panel">
-        <div class="output-header">Resultado do Processamento</div>
+        <div class="output-header">Resultado</div>
         <div id="resultDisplay" class="result-box"></div>
         
-        <div class="output-header">Etapas da Resolução</div>
-        <div id="stepsDisplay" class="steps-wrapper"></div>
+        <div class="output-header">Passo a Passo</div>
+        <div id="stepsDisplay"></div>
+
+        <div id="graphSection" style="display:none;">
+            <div class="output-header">Gráfico da Função</div>
+            <div id="plotContainer"></div>
+        </div>
     </div>
 </div>
 
 <script>
+    function insertSymbol(sym) {
+        const input = document.getElementById('calcInput');
+        input.value += sym;
+        input.focus();
+    }
+
     function setEq(val) {
         document.getElementById('calcInput').value = val;
         calcular();
@@ -214,12 +111,14 @@
         const panel = document.getElementById('outputPanel');
         const resultDisplay = document.getElementById('resultDisplay');
         const stepsDisplay = document.getElementById('stepsDisplay');
+        const graphSection = document.getElementById('graphSection');
 
         if (!input) return;
 
         panel.style.display = 'block';
         resultDisplay.innerHTML = "Calculando...";
         stepsDisplay.innerHTML = "";
+        graphSection.style.display = 'none';
 
         try {
             const response = await fetch('https://calculadora-universal.onrender.com/calcular', {
@@ -242,12 +141,53 @@
                     </div>
                 `).join('');
 
-                if (window.MathJax) {
-                    MathJax.typesetPromise();
+                if (window.MathJax) MathJax.typesetPromise();
+
+                // Plotar Gráfico se houver expressão
+                if (data.grafico_expr) {
+                    renderGraph(data.grafico_expr);
+                    graphSection.style.display = 'block';
                 }
             }
         } catch (e) {
-            resultDisplay.innerHTML = `<span style="color: #ef4444; font-size: 1rem;">Servidor iniciando... Tente novamente em alguns segundos.</span>`;
+            resultDisplay.innerHTML = `<span style="color: #ef4444; font-size: 1rem;">Erro de conexão com o servidor.</span>`;
+        }
+    }
+
+    function renderGraph(exprStr) {
+        try {
+            const xValues = [];
+            const yValues = [];
+            
+            // Substitui sintaxe Python para JS simples para plotagem
+            const cleanExpr = exprStr.replace(/\*\*/g, '^');
+
+            for (let x = -10; x <= 10; x += 0.5) {
+                xValues.push(x);
+                // Avaliação simples do gráfico
+                let y = eval(cleanExpr.replace(/x/g, `(${x})`).replace(/\^/g, '**'));
+                yValues.push(y);
+            }
+
+            const trace = {
+                x: xValues,
+                y: yValues,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#6366f1', width: 3 }
+            };
+
+            const layout = {
+                margin: { t: 20, b: 40, l: 40, r: 20 },
+                paper_bgcolor: '#0f172a',
+                plot_bgcolor: '#0f172a',
+                xaxis: { color: '#94a3b8', gridcolor: '#334155' },
+                yaxis: { color: '#94a3b8', gridcolor: '#334155' }
+            };
+
+            Plotly.newPlot('plotContainer', [trace], layout, {responsive: true});
+        } catch(err) {
+            console.log("Não foi possível gerar o gráfico para esta expressão.");
         }
     }
 </script>
