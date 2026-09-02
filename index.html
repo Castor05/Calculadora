@@ -179,7 +179,7 @@
 <div class="container">
     <div class="brand">
         <div class="brand-title">CoreMath Engine</div>
-        <div class="brand-badge">Symbolic Solver v2.0</div>
+        <div class="brand-badge">Universal Calculator</div>
     </div>
 
     <div class="input-panel">
@@ -218,7 +218,7 @@
         if (!input) return;
 
         panel.style.display = 'block';
-        resultDisplay.innerHTML = "Processando...";
+        resultDisplay.innerHTML = "Calculando...";
         stepsDisplay.innerHTML = "";
 
         try {
@@ -247,7 +247,7 @@
                 }
             }
         } catch (e) {
-            resultDisplay.innerHTML = `<span style="color: #ef4444; font-size: 1rem;">Erro ao conectar com o servidor Render.</span>`;
+            resultDisplay.innerHTML = `<span style="color: #ef4444; font-size: 1rem;">Servidor iniciando... Tente novamente em alguns segundos.</span>`;
         }
     }
 </script>
