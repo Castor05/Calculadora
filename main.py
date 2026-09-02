@@ -2,76 +2,95 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sympy as sp
-import re
 
 app = FastAPI()
 
-# Permite que seu frontend acesse a API sem bloqueios de segurança
+# Permite que o frontend da Vercel faça requisições para o Render
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class EntradaCalculo(BaseModel):
+class CalculoRequest(BaseModel):
     expressao: str
 
-def multifatorial(numero: int, ordem: int):
-    if numero < 0:
-        return None
-    res = 1
-    for i in range(numero, 0, -ordem):
-        res *= i
-    return res
-
 @app.post("/calcular")
-def calcular(dados: EntradaCalculo):
-    entrada = dados.expressao.strip().lower()
-    
-    if not entrada:
-        return {"erro": "Digite uma expressão válida."}
-
+def calcular(data: CalculoRequest):
     try:
-        # Fatorial
-        match_fat = re.match(r"^(\d+)\s*(!{1,3})$", entrada)
-        if match_fat:
-            num = int(match_fat.group(1))
-            sinais = match_fat.group(2)
-            ordem = len(sinais)
-            res = multifatorial(num, ordem)
+        raw_expr = data.expressao.strip().replace("^", "**")
+        
+        # 1. Verifica se é uma EQUAÇÃO (ex: x^2 - x - 6 = 0)
+        if "=" in raw_expr:
+            partes = raw_expr.split("=")
+            lhs = sp.sympify(partes[0])
+            rhs = sp.sympify(partes[1])
+            eq = sp.Eq(lhs, rhs)
+            
+            # Descobre a variável (ex: x)
+            variaveis = list(eq.free_symbols)
+            if not variaveis:
+                return {"erro": "Nenhuma variável encontrada na equação."}
+            
+            var = variaveis[0]
+            solucoes = sp.solve(eq, var)
+            
+            # Formata os passos e resultados em LaTeX
+            passos = [
+                f"Equação original: {sp.latex(eq)}",
+                f"Isolando e resolvendo para {sp.latex(var)}"
+            ]
+            
+            res_latex = f"{sp.latex(var)} = " + ", ".join([sp.latex(s) for s in solucoes])
+            
             return {
-                "resultado": f"{num}{sinais} = {res}",
-                "passos": [f"Fatorial ({sinais}) com decremento de {ordem} em {ordem}.", f"Resultado: {res}"]
+                "resultado": res_latex,
+                "passos": passos
             }
 
-        # Regra de 3
-        if entrada.startswith(("regra3", "regra de 3", "r3")):
-            texto = re.sub(r"^(regra\s*de\s*3|regra3|r3)", "", entrada).strip()
-            numeros = re.findall(r"-?\d+(?:,\d+)?", texto)
-            if len(numeros) == 3:
-                a, b, c = [float(n.replace(",", ".")) for n in numeros]
-                if a != 0:
-                    x_res = (b * c) / a
-                    x_str = str(int(x_res) if x_res.is_integer() else round(x_res, 4)).replace(".", ",")
+        # 2. Se for uma EXPRESSÃO ÁLGEBRICA OU NUMÉRICA (ex: (x^2 - 1)/(x + 1) ou 3/4 + 6/8)
+        else:
+            expr = sp.sympify(raw_expr, evaluate=False)
+            
+            # Se não tem variáveis (apenas números)
+            if len(expr.free_symbols) == 0:
+                resultado_exato = sp.sympify(raw_expr)
+                passos = [
+                    f"Expressão: {sp.latex(expr)}",
+                    f"Simplificação: {sp.latex(resultado_exato)}"
+                ]
+                
+                # Se for fração, mostra também o decimal
+                if resultado_exato.is_Rational and not resultado_exato.is_Integer:
+                    val_decimal = float(resultado_exato)
                     return {
-                        "resultado": f"x = {x_str}",
-                        "passos": [f"Proporção: {a}/{b} = {c}/x", f"Cruzando: {a} * x = {b*c}", f"Isolando X: x = {x_str}"]
+                        "resultado": f"{sp.latex(resultado_exato)} \\approx {val_decimal:.4f}",
+                        "passos": passos
                     }
+                
+                return {
+                    "resultado": sp.latex(resultado_exato),
+                    "passos": passos
+                }
+            
+            # Se tem variáveis (álgebra), fatora/simplifica
+            else:
+                expr_fatorada = sp.factor(expr)
+                expr_simplificada = sp.simplify(expr)
+                
+                passos = [f"Expressão original: {sp.latex(expr)}"]
+                
+                if expr_fatorada != expr:
+                    passos.append(f"Fatoração do polinômio: {sp.latex(expr_fatorada)}")
+                
+                passos.append(f"Forma simplificada final: {sp.latex(expr_simplificada)}")
+                
+                return {
+                    "resultado": sp.latex(expr_simplificada),
+                    "passos": passos
+                }
 
-        # Expressões Simbólicas / Frações
-        fmt = entrada.replace("x", "*").replace(".", "*").replace(",", ".").replace("|", "/").replace("^", "**")
-        expr_sym = sp.sympify(fmt, evaluate=False)
-        res_sym = sp.sympify(fmt, evaluate=True)
-        res_float = float(res_sym.evalf())
-        res_formatado = str(int(res_float) if res_float.is_integer() else round(res_float, 4)).replace(".", ",")
-
-        frac_str = f"{res_sym.p}|{res_sym.q}" if hasattr(res_sym, "p") and res_sym.q != 1 else str(res_sym)
-
-        return {
-            "resultado": f"{frac_str} (Decimal: {res_formatado})" if "|" in entrada else res_formatado,
-            "passos": [f"Expressão formatada: {fmt}", f"Resultado exato: {res_sym}"]
-        }
-
-    except Exception:
-        return {"erro": "Sintaxe inválida."}
+    except Exception as e:
+        return {"erro": f"Sintaxe inválida ou erro no cálculo: {str(e)}"}
